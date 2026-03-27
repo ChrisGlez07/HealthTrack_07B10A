@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Keychain from 'react-native-keychain';
+import SecureStore from 'expo-secure-store';
 
 class StorageService {
     //REGEX
@@ -16,10 +16,8 @@ class StorageService {
     //ASYNC STORAGE
     static async setItem(key, value) {
         try {
-             console.log("Guardando en AsyncStorage:", {key, value});
-            const jsonValue = JSON.stringify(value);
-            console.log("Guardando en AsyncStorage:", jsonValue);
-            await AsyncStorage.setItem(key, jsonValue);
+            const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            await AsyncStorage.setItem(key, stringValue);
         } catch (error) {
             console.error("Error guardando en AsyncStorage:", error);
         }
@@ -27,40 +25,43 @@ class StorageService {
 
     static async getItem(key){
         try {
-            const jsonvalue = await AsyncStorage.getItem(key);
-            return jsonvalue != null ? JSON.parse(jsonvalue) : null;
+            const value = await AsyncStorage.getItem(key);
+            try {
+                return JSON.parse(value);
+            }catch {
+                return value;
+            }
+
         } catch (error) {
             console.error("Error al obtener datos en AsyncStorage:", error);
-        }
-    }
-
-    //KEYCHAIN-Sensititve data storage
-
-    static async saveCredentials(username, token){
-        try {
-           await Keychain.setGenericPassword(username, token);
-           return true;
-        }catch (error) {
-            console.error("Error en Keychain:", error);
-        }
-    }
-
-    //KEYCHAIN-Sensititve data get
-
-    static async getCredentials(){
-        try {
-            const credentials = await Keychain.getGenericPassword();
-            if (credentials){
-                return {user: credentials.username, token: credentials.password};
-            }
             return null;
+        }
+    }
+
+    //SecureStore Sensititve data storage
+
+    static async saveToken(key,token){
+        try {
+            // SecureStore solo acepta String
+            await SecureStore.setItemAsync(key, token);
+        }catch (error) {
+            console.error("Error en SecureStore:", error);
+        }
+    }
+
+    //SecureStore Sensititve data get
+
+    static async getToken(key){
+        try {
+            return await SecureStore.getItemAsync(key);
         } catch (error) {
             console.error("No se pudieron recuperar las credenciales", error);
+            return null;
         }
     }
 
-    static async resetCredentials(){
-        await Keychain.resetGenericPassword();
+    static async resetToken(key){
+        await SecureStore.deleteItemAsync(key);
     }
 }
 
