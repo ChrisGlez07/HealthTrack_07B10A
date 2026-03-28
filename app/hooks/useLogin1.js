@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert } from "react-native";
-import StorageService from "./StorageService";
+import StorageService from "../helpers/StorageService";
 
 const useLogin1 = () => {
   const [email, setEmail] = useState("");
@@ -10,7 +10,7 @@ const useLogin1 = () => {
   const handleLogin = async () => {
     // Validaciones
     if (email.trim() === "" || password.trim() === "") {
-      Alert.alert("Error", "Please enter both email and password.");
+      Alert.alert("Error", "Please enter both email and password.");r
       return;
     }
     

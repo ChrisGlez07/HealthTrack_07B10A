@@ -1,5 +1,5 @@
 import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from "react-native";
-import useLogin1 from "./useLogin1";
+import useLogin1 from "../hooks/useLogin1";
 
 const Login1 = () => {
   const {
