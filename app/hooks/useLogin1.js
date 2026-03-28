@@ -10,7 +10,7 @@ const useLogin1 = () => {
   const handleLogin = async () => {
     // Validaciones
     if (email.trim() === "" || password.trim() === "") {
-      Alert.alert("Error", "Please enter both email and password.");r
+      Alert.alert("Error", "Please enter both email and password.");
       return;
     }
     
