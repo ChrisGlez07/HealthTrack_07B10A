@@ -76,7 +76,7 @@ const RegisterMedic = () => {
           <Button 
             title="Registrar Médico" 
             onPress={onRegisterPress} 
-            color="#e91e63" 
+            color="#2196F3"
           />
           <Text 
             style={styles.linkText} 
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     marginTop: 15,
-    color: '#e91e63',
+    color: '#2196F3',
     textAlign: 'center',
     textDecorationLine: 'underline',
   }

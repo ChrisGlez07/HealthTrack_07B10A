@@ -67,7 +67,7 @@ const RegisterAsistent = () => {
           <Button 
             title="Registrar Asistente" 
             onPress={onRegisterPress} 
-            color="#4CAF50" 
+            color="#2196F3"
           />
           <Text 
             style={styles.linkText} 
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     marginTop: 15,
-    color: '#4CAF50',
+    color: '#2196F3',
     textAlign: 'center',
     textDecorationLine: 'underline',
   }
