@@ -1,8 +1,9 @@
-import CreateAppointment from "./components/CreateAppointment";
+import CancelRequest from "./components/CancelRequest";
 
 export default function Index() {
 return(
-    CreateAppointment()
+    CancelRequest()
+    //CreateAppointment()
     //Register()
     //RegisterMedic()
     //RegisterAsistent()
