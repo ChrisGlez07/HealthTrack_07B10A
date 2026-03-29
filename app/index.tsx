@@ -1,8 +1,8 @@
-import Login1 from "./components/Login1";
+import CreateAppointment from "./components/CreateAppointment";
 
 export default function Index() {
 return(
-    Login1()
+    CreateAppointment()
     //Register()
     //RegisterMedic()
     //RegisterAsistent()
