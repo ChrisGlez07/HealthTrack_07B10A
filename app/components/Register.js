@@ -1,7 +1,10 @@
+import { useRouter } from "expo-router";
 import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from "react-native";
 import useRegister from "../hooks/useRegister";
 
 const Register = () => {
+  const router = useRouter(); 
+  
   const {
     username,
     setUsername,
@@ -13,9 +16,14 @@ const Register = () => {
     isLoading
   } = useRegister();
 
+  const onRegisterPress = async () => {
+    await handleRegister();
+    // router.replace("/home"); 
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.textcommon}>Usuario:</Text>
+      <Text style={styles.TextInput}>Usuario:</Text>
       <TextInput 
         style={styles.inputText}
         value={username}
@@ -24,7 +32,7 @@ const Register = () => {
         editable={!isLoading}
       />
 
-      <Text style={styles.textcommon}>Email:</Text>
+      <Text style={styles.TextInput}>Email:</Text>
       <TextInput 
         style={styles.inputText}
         value={email}
@@ -34,7 +42,7 @@ const Register = () => {
         editable={!isLoading}
       />
       
-      <Text style={styles.textcommon}>Contraseña:</Text>
+      <Text style={styles.TextInput}>Contraseña:</Text>
       <TextInput 
         style={styles.inputText}
         value={password}
@@ -46,11 +54,19 @@ const Register = () => {
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        <Button 
-          title="Crear Cuenta" 
-          onPress={handleRegister}
-          color="#2196F3"
-        />
+        <View style={styles.buttonContainer}>
+          <Button 
+            title="Crear Cuenta" 
+            onPress={onRegisterPress}
+            color="#2196F3"
+          />
+          <Text 
+            style={styles.linkText} 
+            onPress={() => router.back()} // Boton de prueba para volver
+          >
+            ¿Ya tienes cuenta? Inicia sesión
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -61,8 +77,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
+    backgroundColor: '#f5f5f5', 
   },
-  textcommon: {
+  TextInput: {
     fontSize: 16,
     color: 'black',
     fontWeight: 'bold',
@@ -74,9 +91,19 @@ const styles = StyleSheet.create({
     padding: 8,
     borderColor: 'gray',
     color: 'black',
-    fontWeight: 'bold',
+    backgroundColor: 'white',
     height: 40,
     marginBottom: 16,
+    borderRadius: 5,
+  },
+  buttonContainer: {
+    marginTop: 10,
+  },
+  linkText: {
+    marginTop: 15,
+    color: '#2196F3',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
   }
 });
 
