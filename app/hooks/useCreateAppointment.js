@@ -1,64 +1,84 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StorageService from "../helpers/StorageService";
 
 const useCreateAppointment = () => {
-  const [fechaHora, setFechaHora] = useState(""); 
+  const [fecha, setFecha] = useState(""); 
+  const [hora, setHora] = useState("");   
   const [dateObject, setDateObject] = useState(new Date()); 
   const [showPicker, setShowPicker] = useState(false);
-  const [mode, setMode] = useState('date'); 
   
-  const [status, setStatus] = useState("Pendiente");
+  const [medicos, setMedicos] = useState([]);
+  const [medicoSeleccionado, setMedicoSeleccionado] = useState("");
   const [motivo, setMotivo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
-  };
+  const horasDisponibles = [
+    "08:00", "09:00", "10:00", "11:00", "12:00", 
+    "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
+  ];
+
+  useEffect(() => {
+    const fetchMedicos = async () => {
+      try {
+        // FECTH REAL A LA LISTA DE MEDICOS
+        setMedicos([
+          { _id: "65f1a...", username: "Dr. Garcia", especialidad: "Cardiología" },
+          { _id: "65f1b...", username: "Dra. Perez", especialidad: "Pediatría" }
+        ]);
+      } catch (error) {
+        console.error("Error cargando médicos", error);
+      }
+    };
+    fetchMedicos();
+  }, []);
 
   const onChangePicker = (event, selectedDate) => {
     setShowPicker(false);
     if (selectedDate) {
-      setDateObject(selectedDate);
-      const formatted = formatDate(selectedDate);
-      setFechaHora(formatted);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
       
-      if (mode === 'date') {
-        showMode('time');
+      if (selectedDate <= today) {
+        alert("La cita debe ser programada a partir de mañana.");
+        return;
       }
+
+      setDateObject(selectedDate);
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const year = selectedDate.getFullYear();
+      setFecha(`${day}-${month}-${year}`);
     }
   };
 
-  const showMode = (currentMode) => {
-    setShowPicker(true);
-    setMode(currentMode);
-  };
-
   const handleCreateAppointment = async () => {
-    if (!StorageService.validate('date', fechaHora)) {
-      alert("Por favor selecciona una fecha y hora válida.");
+    if (!fecha || !hora || !medicoSeleccionado || !motivo) {
+      alert("Por favor completa todos los campos.");
       return;
     }
 
     setIsLoading(true);
     try {
-      // Aquí obtendrías el token: const token = await StorageService.getToken('userToken');
+      const pacienteId = await StorageService.getItem('userId'); 
+
+      const [h, m] = hora.split(':');
+      const finalDate = new Date(dateObject);
+      finalDate.setHours(parseInt(h), parseInt(m), 0);
+
       const appointmentData = {
-        fecha_hora: fechaHora,
-        status,
-        motivo,
+        paciente_id: pacienteId,
+        medico_id: medicoSeleccionado, 
+        fecha_hora: finalDate,
+        status: "pendiente", 
+        motivo: motivo,
       };
       
       console.log("Enviando cita...", appointmentData);
       await new Promise(resolve => setTimeout(resolve, 2000));
-      alert("Cita creada con éxito");
+      alert("Cita agendada con éxito");
       return true;
-    } catch  {
-      alert("Error al conectar con el servidor");
+    } catch {
+      alert("Error al guardar la cita");
       return false;
     } finally {
       setIsLoading(false);
@@ -66,12 +86,20 @@ const useCreateAppointment = () => {
   };
 
   return {
-    fechaHora, setFechaHora,
-    status, setStatus,
-    motivo, setMotivo,
-    showPicker, mode, dateObject, 
-    onChangePicker, showMode,
-    handleCreateAppointment,
+    fecha, 
+    hora, 
+    setHora, 
+    horasDisponibles,
+    medicoSeleccionado, 
+    setMedicoSeleccionado,
+    medicos, 
+    motivo, 
+    setMotivo,
+    showPicker, 
+    setShowPicker, 
+    dateObject, 
+    onChangePicker,
+    handleCreateAppointment, 
     isLoading
   };
 };

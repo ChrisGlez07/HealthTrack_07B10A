@@ -1,3 +1,4 @@
+import { Picker } from '@react-native-picker/picker'; // Importación necesaria
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import useRegisterMedic from "../hooks/useRegisterMedic";
@@ -20,9 +21,17 @@ const RegisterMedic = () => {
     isLoading 
   } = useRegisterMedic();
 
+  const especialidadesValidas = [
+    'Cardiología', 
+    'Pediatría', 
+    'Reumatología', 
+    'General', 
+    'Ginecología', 
+    'Jefe'
+  ];
+
   const onRegisterPress = async () => {
     await handleRegister();
-    // router.replace("/dashboard-medico");
   };
 
   return (
@@ -53,12 +62,19 @@ const RegisterMedic = () => {
       />
 
       <Text style={styles.TextInput}>Especialidad:</Text>
-      <TextInput 
-        style={styles.inputText} 
-        value={especialidad} 
-        onChangeText={setEspecialidad} 
-        editable={!isLoading} 
-      />
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={especialidad}
+          onValueChange={(itemValue) => setEspecialidad(itemValue)}
+          enabled={!isLoading}
+          style={styles.picker}
+        >
+          <Picker.Item label="Seleccione especialidad..." value="" color="#999" />
+          {especialidadesValidas.map((esp) => (
+            <Picker.Item key={esp} label={esp} value={esp} />
+          ))}
+        </Picker>
+      </View>
 
       <Text style={styles.TextInput}>Password:</Text>
       <TextInput 
@@ -108,6 +124,17 @@ const styles = StyleSheet.create({
     borderColor: 'gray', 
     height: 40, 
     marginBottom: 16 
+  },
+  // Estilos añadidos para el contenedor del Picker
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    marginBottom: 16,
+    justifyContent: 'center',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
   linkText: {
     marginTop: 15,
