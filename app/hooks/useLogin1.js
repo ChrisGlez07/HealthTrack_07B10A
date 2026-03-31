@@ -7,10 +7,49 @@ const useLogin1 = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter(); // Agregar el router
+  const [userRole, setUserRole] = useState(null);
+  const router = useRouter();
+
+  const testUsers = [
+    {
+      id: "1",
+      username: "admin_sistema",
+      email: "admin@heal.com",
+      password: "Admin123456",
+      role: 0,
+      especialidad: "Dirección",
+      name: "Administrador del Sistema"
+    },
+    {
+      id: "2",
+      username: "dr_cardio",
+      email: "cardiologia@healthtrack.com",
+      password: "Medico123!",
+      role: 1,
+      especialidad: "Cardiología",
+      cedulaInterna: "MED12345",
+      name: "Dr. Juan Pérez"
+    },
+    {
+      id: "8",
+      username: "asistente1",
+      email: "asistente1@healthtrack.com",
+      password: "Asistente123!",
+      role: 2,
+      consultorio: 1,
+      name: "María Rodríguez"
+    },
+    {
+      id: "11",
+      username: "paciente1",
+      email: "paciente1@healthtrack.com",
+      password: "Paciente123!",
+      role: 3,
+      name: "Carlos Ramírez"
+    },
+  ];
 
   const handleLogin = async () => {
-    // Validaciones
     if (email.trim() === "" || password.trim() === "") {
       Alert.alert("Error", "Please enter both email and password.");
       return;
@@ -29,22 +68,49 @@ const useLogin1 = () => {
     setIsLoading(true);
 
     try {
-      // Simular llamada API
-      const mockToken = "mock-jwt-token-12345";
-      const mockUserData = {
-        id: "1",
-        email: email,
-        name: "Usuario Ejemplo"
+      const user = testUsers.find(u => u.email === email && u.password === password);
+      
+      if (!user) {
+        Alert.alert("Error", "Invalid email or password. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      const userData = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        role: user.role,
+        especialidad: user.especialidad || null,
+        cedulaInterna: user.cedulaInterna || null,
+        consultorio: user.consultorio || null
       };
 
-      await StorageService.saveToken("userToken", mockToken);
-      await StorageService.setItem("userData", mockUserData);
-      await StorageService.setItem("lastEmail", email);
+      const mockToken = `mock-jwt-token-${user.id}-${Date.now()}`;
 
-      Alert.alert("Success", "Login successful!");
+      await StorageService.saveToken("userToken", mockToken);
+      await StorageService.setItem("userData", userData);
+      await StorageService.setItem("lastEmail", email);
+      await StorageService.setItem("userRole", user.role.toString());
+
+      setUserRole(user.role);
       
-      // Redirigir al home después del login exitoso
-      router.replace("/(tabs)"); // o la ruta de tu home
+
+      let welcomeMessage = `Welcome ${userData.name}!`;
+      if (user.role === 0) {
+        welcomeMessage = `Welcome Administrator ${userData.name}!`;
+      } else if (user.role === 1) {
+        welcomeMessage = `Welcome Dr. ${userData.name} (${user.especialidad})!`;
+      } else if (user.role === 2) {
+        welcomeMessage = `Welcome Assistant ${userData.name} (Consultorio ${user.consultorio})!`;
+      } else if (user.role === 3) {
+        welcomeMessage = `Welcome ${userData.name}!`;
+      }
+      
+      Alert.alert("Success", welcomeMessage);
+      
+      router.replace("/components/Menu");
     } catch (error) {
       console.error("Login error:", error);
       Alert.alert("Error", "An error occurred during login. Please try again.");
@@ -54,16 +120,16 @@ const useLogin1 = () => {
   };
 
   const handleRegister = () => {
-    // Navegar a la página de registro
-    router.push("../components/Register");
+    router.push("/components/Register");
   };
 
   const logout = async () => {
     try {
       await StorageService.resetToken("userToken");
       await StorageService.setItem("userData", null);
+      await StorageService.setItem("userRole", null);
       Alert.alert("Success", "Logged out successfully");
-      router.replace("/components/Login1"); // Redirigir al login después de logout
+      router.replace("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -73,8 +139,10 @@ const useLogin1 = () => {
     try {
       const token = await StorageService.getToken("userToken");
       const userData = await StorageService.getItem("userData");
+      const userRole = await StorageService.getItem("userRole");
       
       if (token && userData) {
+        setUserRole(userRole ? parseInt(userRole) : null);
         return true;
       }
       return false;
@@ -82,6 +150,11 @@ const useLogin1 = () => {
       console.error("Error checking login status:", error);
       return false;
     }
+  };
+
+  const getUserRole = async () => {
+    const role = await StorageService.getItem("userRole");
+    return role ? parseInt(role) : null;
   };
 
   return {
@@ -93,7 +166,9 @@ const useLogin1 = () => {
     logout,
     checkLoginStatus,
     handleRegister,
-    isLoading
+    isLoading,
+    userRole,
+    getUserRole
   };
 };
 

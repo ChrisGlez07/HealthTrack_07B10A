@@ -1,10 +1,10 @@
-import Menu from "./components/Menu";
+import Login1 from "./components/Login1";
 
 export default function Index() {
 return(
-Menu()
+//Menu()
 //RegisterMedic()
 //CreateAppointment()
-//Login1()
+Login1()
 );
 }   

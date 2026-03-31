@@ -8,55 +8,48 @@ const useMenu = () => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-
   const allOptions = [
     {
       id: 1,
       name: "CancelRequest",
       title: "Cancel Request",
       icon: require("../assets/cancel_request.png"),
-      route: "/CancelRequest",
-      allowedRoles: [0, 1, 2] 
+      route: "/components/CancelRequest",
     },
     {
       id: 2,
       name: "CreateAppointment",
       title: "Create Appointment",
       icon: require("../assets/create_appointment.png"),
-      route: "/CreateAppointment",
-      allowedRoles: [0, 1, 2] 
+      route: "/components/CreateAppointment",
     },
     {
       id: 3,
       name: "CurrentAppointment",
       title: "Current Appointment",
       icon: require("../assets/current_appointment.png"),
-      route: "/CurrentAppointment",
-      allowedRoles: [0, 1, 2, 3] 
+      route: "/components/CurrentAppointment",
     },
     {
       id: 4,
       name: "LastAppointment",
       title: "Last Appointment",
       icon: require("../assets/last_appointment.png"),
-      route: "/LastAppointment",
-      allowedRoles: [0, 1, 2, 3] 
+      route: "/components/LastAppointment",
     },
     {
       id: 5,
       name: "RegisterAsistent",
       title: "Register Assistant",
       icon: require("../assets/register_asistent.png"),
-      route: "/RegisterAsistent",
-      allowedRoles: [0] 
+      route: "/components/RegisterAsistent",
     },
     {
       id: 6,
       name: "RegisterMedic",
       title: "Register Medic",
       icon: require("../assets/register_medic.png"),
-      route: "/RegisterMedic",
-      allowedRoles: [0] 
+      route: "/components/RegisterMedic",
     }
   ];
 
@@ -82,12 +75,9 @@ const useMenu = () => {
     }
   };
 
+  // MODIFICADO: Ahora devuelve TODAS las opciones sin filtrar
   const getFilteredOptions = () => {
-    if (userRole === null) return [];
-    
-    return allOptions.filter(option => 
-      option.allowedRoles.includes(userRole)
-    );
+    return allOptions; // Devuelve todas las opciones sin importar el rol
   };
 
   const handleLogout = async () => {
@@ -119,7 +109,7 @@ const useMenu = () => {
     userData,
     userRole,
     isLoading,
-    filteredOptions: getFilteredOptions(),
+    filteredOptions: getFilteredOptions(), // Ahora devuelve todas las opciones
     handleLogout,
     navigateTo,
     getUserRoleName

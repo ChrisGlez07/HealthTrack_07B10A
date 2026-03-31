@@ -33,6 +33,9 @@ export default function Menu() {
           <Text style={styles.userEmail}>{userData?.email || "email@ejemplo.com"}</Text>
           <Text style={styles.userRole}>{getUserRoleName()}</Text>
         </View>
+        <TouchableOpacity style={styles.logoutButtonHeader} onPress={handleLogout}>
+          <Text style={styles.logoutTextHeader}>Logout</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.menuContainer}>
@@ -54,10 +57,6 @@ export default function Menu() {
           ))}
         </View>
       </ScrollView>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -106,6 +105,17 @@ const styles = StyleSheet.create({
     color: '#007BFF',
     fontWeight: '500',
   },
+  logoutButtonHeader: {
+    backgroundColor: '#dc3545',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  logoutTextHeader: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   menuContainer: {
     flexGrow: 1,
     padding: 20,
@@ -148,18 +158,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
     fontWeight: '500',
-  },
-  logoutButton: {
-    margin: 20,
-    marginTop: 0,
-    backgroundColor: '#dc3545',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
