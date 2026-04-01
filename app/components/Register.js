@@ -17,8 +17,11 @@ const Register = () => {
   } = useRegister();
 
   const onRegisterPress = async () => {
-    await handleRegister();
-    // router.replace("/home"); 
+    const success = await handleRegister();
+
+    if (success) {
+      router.replace("/"); 
+    }
   };
 
   return (

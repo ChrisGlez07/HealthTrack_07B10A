@@ -1,3 +1,4 @@
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import useRegisterAsistent from "../hooks/useRegisterAsistent";
@@ -20,7 +21,6 @@ const RegisterAsistent = () => {
 
   const onRegisterPress = async () => {
     await handleRegister();
-    // Ejemplo: router.replace("/success");
   };
 
   return (
@@ -52,13 +52,23 @@ const RegisterAsistent = () => {
       />
 
       <Text style={styles.textregister}>Consultorio:</Text>
-      <TextInput 
-        style={styles.inputText} 
-        value={consultorio} 
-        onChangeText={setConsultorio} 
-        placeholder="Consultorio" 
-        editable={!isLoading} 
-      />
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={consultorio}
+          onValueChange={(itemValue) => setConsultorio(itemValue)}
+          enabled={!isLoading}>
+          <Picker.Item label="Consultorio 1" value="1" />
+          <Picker.Item label="Consultorio 2" value="2" />
+          <Picker.Item label="Consultorio 3" value="3" />
+          <Picker.Item label="Consultorio 4" value="4" />
+          <Picker.Item label="Consultorio 5" value="5" />
+          <Picker.Item label="Consultorio 6" value="6" />
+          <Picker.Item label="Consultorio 7" value="7" />
+          <Picker.Item label="Consultorio 8" value="8" />
+          <Picker.Item label="Consultorio 9" value="9" />
+          <Picker.Item label="Consultorio 10" value="10" />
+        </Picker>
+      </View>
       
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
@@ -71,10 +81,7 @@ const RegisterAsistent = () => {
           />
           <Text 
             style={styles.linkText} 
-            onPress={() => router.back()} // Boton de prueba para volver atrás
-          >
-            Volver atrás
-          </Text>
+            onPress={() => router.back()}>Volver atrás</Text>
         </View>
       )}
     </ScrollView>
@@ -99,6 +106,12 @@ const styles = StyleSheet.create({
     borderColor: 'gray', 
     height: 40, 
     marginBottom: 16 
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    marginBottom: 16,
+    justifyContent: 'center',
   },
   linkText: {
     marginTop: 15,

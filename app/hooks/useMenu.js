@@ -32,8 +32,8 @@ const useMenu = () => {
     },
     {
       id: 4,
-      name: "LastAppointment",
-      title: "Last Appointment",
+      name: "Appointment History",
+      title: "Appointment History",
       icon: require("../assets/last_appointment.png"),
       route: "/components/LastAppointment",
     },
@@ -64,7 +64,8 @@ const useMenu = () => {
       
       if (user) {
         setUserData(user);
-        setUserRole(role ? parseInt(role) : null);
+        // Nos aseguramos de que el rol sea un número para las comparaciones
+        setUserRole(role !== null ? parseInt(role) : null);
       } else {
         router.replace("/");
       }
@@ -75,9 +76,36 @@ const useMenu = () => {
     }
   };
 
-  // MODIFICADO: Ahora devuelve TODAS las opciones sin filtrar
+  /**
+   * LÓGICA DE FILTRADO POR ROL
+   * 0: Admin -> Todo
+   * 1: Médico -> Todo menos RegisterMedic
+   * 2: Asistente -> Todo menos RegisterMedic y RegisterAsistent
+   * 3: Paciente -> Todo menos RegisterMedic, RegisterAsistent y CancelRequest
+   */
   const getFilteredOptions = () => {
-    return allOptions; // Devuelve todas las opciones sin importar el rol
+    if (userRole === null) return []; // Si no hay rol, no mostramos nada mientras carga
+
+    return allOptions.filter(option => {
+      if (userRole === 0) return true; // Admin ve todo
+
+      if (userRole === 1) { // Médico
+        return option.name !== "RegisterMedic";
+      }
+
+      if (userRole === 2) { // Asistente
+        return option.name !== "RegisterMedic" && 
+               option.name !== "RegisterAsistent";
+      }
+
+      if (userRole === 3) { // Paciente
+        return option.name !== "RegisterMedic" && 
+               option.name !== "RegisterAsistent" && 
+               option.name !== "CancelRequest";
+      }
+
+      return false; // Por seguridad, si es un rol desconocido
+    });
   };
 
   const handleLogout = async () => {
@@ -109,7 +137,7 @@ const useMenu = () => {
     userData,
     userRole,
     isLoading,
-    filteredOptions: getFilteredOptions(), // Ahora devuelve todas las opciones
+    filteredOptions: getFilteredOptions(), // Ahora sí devuelve la lista filtrada
     handleLogout,
     navigateTo,
     getUserRoleName

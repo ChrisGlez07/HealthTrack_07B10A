@@ -45,6 +45,13 @@ const useRegisterMedic = () => {
       await StorageService.setItem("userData", { username, email, cedulaInterna, especialidad, role: 1 });
       // -----------------------------------------------
 
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setCedulaInterna("");
+      setEspecialidad("");
+
+
       Alert.alert("Éxito", "Médico registrado exitosamente.");
     } catch (error) {
       console.error(error);

@@ -76,6 +76,12 @@ const useCreateAppointment = () => {
       console.log("Enviando cita...", appointmentData);
       await new Promise(resolve => setTimeout(resolve, 2000));
       alert("Cita agendada con éxito");
+
+      setFecha("");
+      setHora("");
+      setMedicoSeleccionado("");
+      setMotivo("");
+
       return true;
     } catch {
       alert("Error al guardar la cita");

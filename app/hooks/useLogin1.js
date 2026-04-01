@@ -24,7 +24,7 @@ const useLogin1 = () => {
       id: "2",
       username: "dr_cardio",
       email: "cardiologia@healthtrack.com",
-      password: "Medico123!",
+      password: "Medico123456",
       role: 1,
       especialidad: "Cardiología",
       cedulaInterna: "MED12345",
@@ -34,7 +34,7 @@ const useLogin1 = () => {
       id: "8",
       username: "asistente1",
       email: "asistente1@healthtrack.com",
-      password: "Asistente123!",
+      password: "Asistente123456",
       role: 2,
       consultorio: 1,
       name: "María Rodríguez"
@@ -43,7 +43,7 @@ const useLogin1 = () => {
       id: "11",
       username: "paciente1",
       email: "paciente1@healthtrack.com",
-      password: "Paciente123!",
+      password: "Paciente123456",
       role: 3,
       name: "Carlos Ramírez"
     },

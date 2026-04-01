@@ -42,7 +42,12 @@ const useRegisterAsistent = () => {
       await StorageService.saveToken("userToken", mockToken);
       await StorageService.setItem("userData", { username, email, consultorio, role: 2 });
       // -----------------------------------------------
-
+      
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setConsultorio(""); 
+      
       Alert.alert("Éxito", "Asistente registrado correctamente.");
     } catch (error) {
       console.error(error);

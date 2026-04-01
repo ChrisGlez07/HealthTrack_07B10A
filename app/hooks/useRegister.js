@@ -38,6 +38,13 @@ const useRegister = () => {
       // Simulación de éxito
       await StorageService.saveToken("userToken", "token-user-3");
       Alert.alert("Éxito", "Usuario registrado.");
+
+      setUsername("");
+      setEmail("");
+      setPassword("");
+
+      return true;
+      
     } catch {
       Alert.alert("Error", "No se pudo registrar.");
     } finally {
