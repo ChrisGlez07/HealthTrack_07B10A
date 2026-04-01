@@ -64,7 +64,6 @@ const useMenu = () => {
       
       if (user) {
         setUserData(user);
-        // Nos aseguramos de que el rol sea un número para las comparaciones
         setUserRole(role !== null ? parseInt(role) : null);
       } else {
         router.replace("/");
@@ -76,35 +75,28 @@ const useMenu = () => {
     }
   };
 
-  /**
-   * LÓGICA DE FILTRADO POR ROL
-   * 0: Admin -> Todo
-   * 1: Médico -> Todo menos RegisterMedic
-   * 2: Asistente -> Todo menos RegisterMedic y RegisterAsistent
-   * 3: Paciente -> Todo menos RegisterMedic, RegisterAsistent y CancelRequest
-   */
   const getFilteredOptions = () => {
-    if (userRole === null) return []; // Si no hay rol, no mostramos nada mientras carga
+    if (userRole === null) return []; 
 
     return allOptions.filter(option => {
-      if (userRole === 0) return true; // Admin ve todo
+      if (userRole === 0) return true; 
 
-      if (userRole === 1) { // Médico
+      if (userRole === 1) { 
         return option.name !== "RegisterMedic";
       }
 
-      if (userRole === 2) { // Asistente
+      if (userRole === 2) { 
         return option.name !== "RegisterMedic" && 
                option.name !== "RegisterAsistent";
       }
 
-      if (userRole === 3) { // Paciente
+      if (userRole === 3) { 
         return option.name !== "RegisterMedic" && 
                option.name !== "RegisterAsistent" && 
                option.name !== "CancelRequest";
       }
 
-      return false; // Por seguridad, si es un rol desconocido
+      return false; 
     });
   };
 
@@ -137,7 +129,7 @@ const useMenu = () => {
     userData,
     userRole,
     isLoading,
-    filteredOptions: getFilteredOptions(), // Ahora sí devuelve la lista filtrada
+    filteredOptions: getFilteredOptions(), 
     handleLogout,
     navigateTo,
     getUserRoleName
