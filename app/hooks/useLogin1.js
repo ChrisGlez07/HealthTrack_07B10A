@@ -14,38 +14,10 @@ const useLogin1 = () => {
   // MOCK DATA COMENTADO
   /*
   const testUsers = [
-    {
-      id: "1",
-      username: "admin_sistema",
-      email: "admin@heal.com",
-      password: "Admin123456",
-      role: 0,
-      especialidad: "Dirección",
-    },
-    {
-      id: "2",
-      username: "dr_cardio",
-      email: "cardiologia@healthtrack.com",
-      password: "Medico123456",
-      role: 1,
-      especialidad: "Cardiología",
-      cedulaInterna: "MED12345",
-    },
-    {
-      id: "8",
-      username: "asistente1",
-      email: "asistente1@healthtrack.com",
-      password: "Asistente123456",
-      role: 2,
-      consultorio: 1,
-    },
-    {
-      id: "11",
-      username: "paciente1",
-      email: "paciente1@healthtrack.com",
-      password: "Paciente123456",
-      role: 3,
-    },
+    { id: "1", username: "admin_sistema", email: "admin@heal.com", password: "Admin123456", role: 0, especialidad: "Dirección" },
+    { id: "2", username: "dr_cardio", email: "cardiologia@healthtrack.com", password: "Medico123456", role: 1, especialidad: "Cardiología", cedulaInterna: "MED12345" },
+    { id: "8", username: "asistente1", email: "asistente1@healthtrack.com", password: "Asistente123456", role: 2, consultorio: 1 },
+    { id: "11", username: "paciente1", email: "paciente1@healthtrack.com", password: "Paciente123456", role: 3 }
   ];
   */
 
@@ -69,53 +41,52 @@ const useLogin1 = () => {
 
     try {
       const data = {
-        email: email,
-        password: password
+        email: email.trim().toLowerCase(), 
+        password: password.trim()
       };
 
-      // Petición real a la API
-      const response = await api.post('/login', data);
+      const response = await api.post('/login', data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '' 
+        }
+      });
       
-      /* Lógica anterior con Mock Data (Comentada):
-        const user = testUsers.find(u => u.email === email && u.password === password);
-        if (!user) { ... }
-      */
+      const { token, usuario } = response.data;
 
-      // Extraemos los datos que vienen del backend
-      // Ajusta 'token' y 'user' según los nombres exactos que use tu API
-      const { token, user } = response.data;
-
-      if (!user) {
+      if (!usuario) {
+        console.log("No se encontró el objeto 'usuario' en:", response.data);
         Alert.alert("Error", "Invalid email or password. Please try again.");
         setIsLoading(false);
         return;
       }
 
       const userData = {
-        _id: user._id || user.id,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        especialidad: user.especialidad || null,
-        cedulaInterna: user.cedulaInterna || null,
-        consultorio: user.consultorio || null
+        _id: usuario._id, 
+        email: usuario.email,
+        username: usuario.username,
+        role: usuario.role,
+        especialidad: usuario.especialidad !== undefined ? usuario.especialidad : null,
+        cedulaInterna: usuario.cedulaInterna !== undefined ? usuario.cedulaInterna : null,
+        consultorio: usuario.consultorio !== undefined ? usuario.consultorio : null
       };
 
       await StorageService.saveToken("userToken", token);
       await StorageService.setItem("userData", userData);
       await StorageService.setItem("lastEmail", email);
-      await StorageService.setItem("userRole", user.role.toString());
+      
+      await StorageService.setItem("userRole", usuario.role.toString());
 
-      setUserRole(user.role);
+      setUserRole(usuario.role);
 
       let welcomeMessage = `Welcome ${userData.username}!`;
-      if (user.role === 0) {
+      if (usuario.role === 0) {
         welcomeMessage = `Welcome Administrator ${userData.username}!`;
-      } else if (user.role === 1) {
-        welcomeMessage = `Welcome Dr. ${userData.username} (${user.especialidad || 'General'})!`;
-      } else if (user.role === 2) {
-        welcomeMessage = `Welcome Assistant ${userData.username} (Consultorio ${user.consultorio || 'N/A'})!`;
-      } else if (user.role === 3) {
+      } else if (usuario.role === 1) {
+        welcomeMessage = `Welcome Dr. ${userData.username} (${usuario.especialidad || 'General'})!`;
+      } else if (usuario.role === 2) {
+        welcomeMessage = `Welcome Assistant ${userData.username} (Consultorio ${usuario.consultorio || 'N/A'})!`;
+      } else if (usuario.role === 3) {
         welcomeMessage = `Welcome ${userData.username}!`;
       }
       
@@ -123,7 +94,7 @@ const useLogin1 = () => {
       router.replace("/components/Menu");
 
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error:", error.response?.data || error.message);
       const serverMessage = error.response?.data?.message || "An error occurred during login.";
       Alert.alert("Error", serverMessage);
     } finally {

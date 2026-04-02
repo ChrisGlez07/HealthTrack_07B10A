@@ -1,6 +1,9 @@
+//Final App
+
 import { useState } from "react";
 import { Alert } from "react-native";
 import StorageService from "../helpers/StorageService";
+import api from "../models/users";
 
 const useRegister = () => {
   const [username, setUsername] = useState("");
@@ -20,24 +23,24 @@ const useRegister = () => {
     }
 
     if (!StorageService.validate('password', password)) {
-      Alert.alert("Error", "Contraseña débil.");
+      Alert.alert("Error", "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.");
       return;
     }
 
     setIsLoading(true);
     try {
-      // API ENDPOINT
       const payload = { 
-        username, 
-        email, 
-        password, 
-        role: 3 
+        username: username.trim(), 
+        email: email.trim().toLowerCase(), 
+        password: password.trim()
       };
       
-      console.log("Enviando a API:", payload);
-      // Simulación de éxito
-      await StorageService.saveToken("userToken", "token-user-3");
-      Alert.alert("Éxito", "Usuario registrado.");
+      console.log("Registrando en API:", payload);
+
+      const response = await api.post('/register/paciente', payload);
+
+
+      Alert.alert("Éxito", response.data.msg || "Usuario registrado correctamente.");
 
       setUsername("");
       setEmail("");
@@ -45,8 +48,15 @@ const useRegister = () => {
 
       return true;
       
-    } catch {
-      Alert.alert("Error", "No se pudo registrar.");
+    } catch (error) {
+      console.error("Register error:", error.response?.data || error.message);
+      
+      const serverMessage = error.response?.data?.msg || 
+                           error.response?.data?.message || 
+                           "No se pudo completar el registro.";
+                           
+      Alert.alert("Error", serverMessage);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +70,8 @@ const useRegister = () => {
     password, 
     setPassword, 
     handleRegister, 
-    isLoading };
+    isLoading 
+  };
 };
 
 export default useRegister;

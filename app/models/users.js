@@ -1,37 +1,36 @@
-//https://healthtrack-1-uxq3.onrender.com
+//Final App
 
 import axios from "axios";
-// import { getToken } from "../helpers/StorageService";
-
-//crear la instancia axios
+import StorageService from "../helpers/StorageService";
 
 const api = axios.create({
-    baseURL: "https://healthtrack-1-uxq3.onrender.com/api",
+    baseURL: "https://healthtrack-hnsx.onrender.com/api",
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",
     },
 });
 
-// api.interceptors.request.use(
-//     async (config) => {
-//         try {
-//             const token = await getToken("JWTToken");
-//             //Solo si el token existe, lo agregamos a header
+api.interceptors.request.use(
+    async (config) => {
+        try {
+            if (config.url.includes("/login" ) || config.url.includes("/register/paciente")) {
+                return config;
+            }
 
-//             if ( token !== null) {
-//                 config.headers.Authorization = `Bearer ${token}`;
-//             }
-//             return config;
-
-//         } catch (error) {
-//             return Promise.reject(error);
-//         }
-
-//     },
-//     (error) => {
-//         return Promise.reject(error);
-//     }
-// )
+            const token = await StorageService.getToken("userToken");
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            
+            return config;
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 export default api;

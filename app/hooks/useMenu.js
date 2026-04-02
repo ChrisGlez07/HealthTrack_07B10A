@@ -82,7 +82,8 @@ const useMenu = () => {
       if (userRole === 0) return true; 
 
       if (userRole === 1) { 
-        return option.name !== "RegisterMedic";
+        return option.name !== "RegisterMedic" && 
+               option.name !== "RegisterAsistent";
       }
 
       if (userRole === 2) { 

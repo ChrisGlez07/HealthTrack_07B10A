@@ -1,6 +1,9 @@
+//Final App
+
 import { useState } from "react";
 import { Alert } from "react-native";
 import StorageService from "../helpers/StorageService";
+import api from "../models/users";
 
 const useRegisterMedic = () => {
   const [username, setUsername] = useState("");
@@ -21,6 +24,14 @@ const useRegisterMedic = () => {
       return;
     }
 
+    const emailParts = email.trim().split("@");
+    const domain = emailParts.length > 1 ? emailParts[1] : "";
+
+    if (domain !== "hospitalHealth.com") {
+      Alert.alert("Error", "Solo se permiten correos con dominio @hospitalHealth.com");
+      return;
+    }
+
     if (!StorageService.validate('password', password)) {
       Alert.alert("Error", "Contraseña débil.");
       return;
@@ -28,22 +39,18 @@ const useRegisterMedic = () => {
 
     setIsLoading(true);
     try {
-      // API ENDPOINT:
       const payload = { 
-        username, 
-        email, 
-        password, 
-        cedulaInterna, 
-        especialidad, 
+        username: username.trim(), 
+        email: email.trim().toLowerCase(), 
+        password: password.trim(), 
+        cedulaInterna: cedulaInterna.trim(), 
+        especialidad: especialidad.trim(), 
         role: 1 
       };
       
       console.log("Enviando Médico:", payload);
 
-      const mockToken = "token-medico-rol-1";
-      await StorageService.saveToken("userToken", mockToken);
-      await StorageService.setItem("userData", { username, email, cedulaInterna, especialidad, role: 1 });
-      // -----------------------------------------------
+      const response = await api.post('/register/personal', payload);
 
       setUsername("");
       setEmail("");
@@ -51,29 +58,22 @@ const useRegisterMedic = () => {
       setCedulaInterna("");
       setEspecialidad("");
 
+      Alert.alert("Éxito", response.data.msg || "Médico registrado exitosamente.");
+      return true;
 
-      Alert.alert("Éxito", "Médico registrado exitosamente.");
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Error al procesar registro.");
+      const serverMsg = error.response?.data?.msg || "Error al procesar registro.";
+      Alert.alert("Error", serverMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
   return { 
-    username, 
-    setUsername, 
-    email, 
-    setEmail, 
-    password, 
-    setPassword,
-    cedulaInterna, 
-    setCedulaInterna, 
-    especialidad, 
-    setEspecialidad, 
-    handleRegister, 
-    isLoading 
+    username, setUsername, email, setEmail, password, setPassword,
+    cedulaInterna, setCedulaInterna, especialidad, setEspecialidad, 
+    handleRegister, isLoading 
   };
 };
 
