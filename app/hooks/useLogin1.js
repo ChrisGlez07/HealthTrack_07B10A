@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert } from "react-native";
 import StorageService from "../helpers/StorageService";
+import api from "../models/users";
 
 const useLogin1 = () => {
   const [email, setEmail] = useState("");
@@ -10,6 +11,8 @@ const useLogin1 = () => {
   const [userRole, setUserRole] = useState(null);
   const router = useRouter();
 
+  // MOCK DATA COMENTADO
+  /*
   const testUsers = [
     {
       id: "1",
@@ -18,7 +21,6 @@ const useLogin1 = () => {
       password: "Admin123456",
       role: 0,
       especialidad: "Dirección",
-      name: "Administrador del Sistema"
     },
     {
       id: "2",
@@ -28,7 +30,6 @@ const useLogin1 = () => {
       role: 1,
       especialidad: "Cardiología",
       cedulaInterna: "MED12345",
-      name: "Dr. Juan Pérez"
     },
     {
       id: "8",
@@ -37,7 +38,6 @@ const useLogin1 = () => {
       password: "Asistente123456",
       role: 2,
       consultorio: 1,
-      name: "María Rodríguez"
     },
     {
       id: "11",
@@ -45,9 +45,9 @@ const useLogin1 = () => {
       email: "paciente1@healthtrack.com",
       password: "Paciente123456",
       role: 3,
-      name: "Carlos Ramírez"
     },
   ];
+  */
 
   const handleLogin = async () => {
     if (email.trim() === "" || password.trim() === "") {
@@ -68,8 +68,23 @@ const useLogin1 = () => {
     setIsLoading(true);
 
     try {
-      const user = testUsers.find(u => u.email === email && u.password === password);
+      const data = {
+        email: email,
+        password: password
+      };
+
+      // Petición real a la API
+      const response = await api.post('/login', data);
       
+      /* Lógica anterior con Mock Data (Comentada):
+        const user = testUsers.find(u => u.email === email && u.password === password);
+        if (!user) { ... }
+      */
+
+      // Extraemos los datos que vienen del backend
+      // Ajusta 'token' y 'user' según los nombres exactos que use tu API
+      const { token, user } = response.data;
+
       if (!user) {
         Alert.alert("Error", "Invalid email or password. Please try again.");
         setIsLoading(false);
@@ -77,43 +92,40 @@ const useLogin1 = () => {
       }
 
       const userData = {
-        id: user.id,
+        _id: user._id || user.id,
         email: user.email,
         username: user.username,
-        name: user.name,
         role: user.role,
         especialidad: user.especialidad || null,
         cedulaInterna: user.cedulaInterna || null,
         consultorio: user.consultorio || null
       };
 
-      const mockToken = `mock-jwt-token-${user.id}-${Date.now()}`;
-
-      await StorageService.saveToken("userToken", mockToken);
+      await StorageService.saveToken("userToken", token);
       await StorageService.setItem("userData", userData);
       await StorageService.setItem("lastEmail", email);
       await StorageService.setItem("userRole", user.role.toString());
 
       setUserRole(user.role);
-      
 
-      let welcomeMessage = `Welcome ${userData.name}!`;
+      let welcomeMessage = `Welcome ${userData.username}!`;
       if (user.role === 0) {
-        welcomeMessage = `Welcome Administrator ${userData.name}!`;
+        welcomeMessage = `Welcome Administrator ${userData.username}!`;
       } else if (user.role === 1) {
-        welcomeMessage = `Welcome Dr. ${userData.name} (${user.especialidad})!`;
+        welcomeMessage = `Welcome Dr. ${userData.username} (${user.especialidad || 'General'})!`;
       } else if (user.role === 2) {
-        welcomeMessage = `Welcome Assistant ${userData.name} (Consultorio ${user.consultorio})!`;
+        welcomeMessage = `Welcome Assistant ${userData.username} (Consultorio ${user.consultorio || 'N/A'})!`;
       } else if (user.role === 3) {
-        welcomeMessage = `Welcome ${userData.name}!`;
+        welcomeMessage = `Welcome ${userData.username}!`;
       }
       
       Alert.alert("Success", welcomeMessage);
-      
       router.replace("/components/Menu");
+
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert("Error", "An error occurred during login. Please try again.");
+      const serverMessage = error.response?.data?.message || "An error occurred during login.";
+      Alert.alert("Error", serverMessage);
     } finally {
       setIsLoading(false);
     }

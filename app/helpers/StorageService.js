@@ -6,7 +6,7 @@ class StorageService {
     //Common patterns
     static patterns = {
         email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
+        password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d\W_]{8,}$/,
         date: /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4} ([01][0-9]|2[0-3]):([0-5][0-9])$/,
     };
 
