@@ -6,5 +6,8 @@ return(
 //RegisterMedic()
 //CreateAppointment()
 Login1()
+//Register()
+//RegisterAsistent()
+//PendingAppointments()
 );
 }   

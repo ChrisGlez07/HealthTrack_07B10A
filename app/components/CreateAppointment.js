@@ -1,8 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from "expo-router";
-import React from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import useCreateAppointment from "../hooks/useCreateAppointment";
 
 const CreateAppointment = () => {
@@ -17,17 +16,25 @@ const CreateAppointment = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Nueva Cita Médica</Text>
+      <View style={styles.headerContainer}>
+        <Image 
+          source={require('../assets/HealthTrack.png')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.headerTitle}>Agregar Cita</Text>
+      </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Médico Especialista</Text>
+      <View style={styles.blueBox}>
+        <Text style={styles.label}>DOCTOR</Text>
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={medicoSeleccionado}
             onValueChange={(val) => setMedicoSeleccionado(val)}
             style={styles.picker}
+            dropdownIconColor="#FFF"
           >
-            <Picker.Item label="Seleccione un profesional..." value="" color="#999" />
+            <Picker.Item label="Seleccione un profesional..." value="" color="#555" />
             {medicos.map(m => (
               <Picker.Item key={m._id} label={`${m.username} (${m.especialidad})`} value={m._id} />
             ))}
@@ -35,17 +42,26 @@ const CreateAppointment = () => {
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Fecha de Consulta</Text>
-        <TouchableOpacity onPress={() => setShowPicker(true)} activeOpacity={0.7}>
+      <TouchableOpacity 
+        style={styles.blueBox} 
+        onPress={() => setShowPicker(true)} 
+        activeOpacity={0.8}
+      >
+        <Text style={styles.label}>DATE</Text>
+        <View style={styles.row}>
           <TextInput 
-            style={styles.inputText}
+            style={styles.dateInput}
             value={fecha}
             placeholder="DD-MM-YYYY"
             editable={false}
+            placeholderTextColor="#555"
           />
-        </TouchableOpacity>
-      </View>
+          <Image 
+      source={require('../assets/calendario.png')} 
+      style={styles.smallIcon}
+    />
+        </View>
+      </TouchableOpacity>
 
       {showPicker && (
         <DateTimePicker
@@ -57,15 +73,15 @@ const CreateAppointment = () => {
         />
       )}
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Horario Disponible</Text>
+      <View style={styles.blueBox}>
+        <Text style={styles.label}>TIME</Text>
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={hora}
             onValueChange={(val) => setHora(val)}
             style={styles.picker}
           >
-            <Picker.Item label="Seleccione una hora..." value="" color="#999" />
+            <Picker.Item label="Seleccione una hora..." value="" color="#555" />
             {horasDisponibles.map(h => (
               <Picker.Item key={h} label={h} value={h} />
             ))}
@@ -73,31 +89,33 @@ const CreateAppointment = () => {
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Motivo de la Cita</Text>
+      <View style={[styles.blueBox, { height: 140 }]}>
+        <Text style={styles.label}>CONTEXT</Text>
         <TextInput 
           style={styles.textArea} 
           value={motivo}
           onChangeText={setMotivo}
-          placeholder="Describa brevemente su malestar o motivo de consulta..."
+          placeholder="DESCRIPTION"
+          placeholderTextColor="#555"
           multiline={true}
           numberOfLines={4}
         />
       </View>
 
-      <View style={styles.footer}>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity 
+          style={styles.menuButton} 
+          onPress={() => router.replace("/components/Menu")}
+        >
+          <Text style={styles.buttonText}>MENU</Text>
+        </TouchableOpacity>
+
         {isLoading ? (
-          <ActivityIndicator size="large" color="#2196F3" />
+          <ActivityIndicator size="large" color="#80FF80" />
         ) : (
-          <>
-            <TouchableOpacity style={styles.mainButton} onPress={handleCreateAppointment}>
-              <Text style={styles.buttonText}>Confirmar Cita</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-              <Text style={styles.cancelText}>Cancelar y regresar</Text>
-            </TouchableOpacity>
-          </>
+          <TouchableOpacity style={styles.addButton} onPress={handleCreateAppointment}>
+            <Text style={styles.buttonText}>Añadir</Text>
+          </TouchableOpacity>
         )}
       </View>
     </ScrollView>
@@ -106,92 +124,98 @@ const CreateAppointment = () => {
 
 const styles = StyleSheet.create({
   container: { 
-    paddingHorizontal: 25, 
-    paddingVertical: 30, 
+    paddingHorizontal: 30, 
+    paddingVertical: 40, 
     backgroundColor: '#FFFFFF', 
     flexGrow: 1 
   },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1A1A1A',
-    marginBottom: 25,
-    textAlign: 'center'
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  inputGroup: {
-    marginBottom: 20,
+  logo: {
+    width: 300,
+    height: 150,
+    marginBottom: 10,
   },
-  label: { 
-    fontSize: 14, 
-    fontWeight: '600', 
-    marginBottom: 8, 
-    color: '#555',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
+  headerTitle: {
+    fontSize: 28,
+    color: '#333',
+    fontWeight: '400',
   },
-  inputText: { 
-    fontSize: 16, 
-    backgroundColor: '#F5F7FA', 
-    borderWidth: 1, 
-    borderColor: '#E1E8ED', 
-    paddingHorizontal: 15,
-    paddingVertical: 12, 
-    borderRadius: 10,
-    color: '#333'
+  blueBox: {
+    backgroundColor: '#80C0E0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    justifyContent: 'center',
   },
-  pickerWrapper: { 
-    backgroundColor: '#F5F7FA', 
-    borderWidth: 1, 
-    borderColor: '#E1E8ED', 
-    borderRadius: 10,
-    overflow: 'hidden',
-    justifyContent: 'center'
+  label: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  pickerWrapper: {
+    height: 40,
+    justifyContent: 'center',
   },
   picker: {
-    height: 55, // Altura vertical consistente
     width: '100%',
+    color: '#333',
   },
-  textArea: { 
-    fontSize: 16, 
-    backgroundColor: '#F5F7FA', 
-    borderWidth: 1, 
-    borderColor: '#E1E8ED', 
-    paddingHorizontal: 15,
-    paddingTop: 15, 
-    paddingBottom: 15,
-    borderRadius: 10,
-    height: 120,
-    textAlignVertical: 'top', 
-    color: '#333'
-  },
-  footer: {
-    marginTop: 20,
-    paddingBottom: 40
-  },
-  mainButton: {
-    backgroundColor: '#2196F3',
-    paddingVertical: 15,
-    borderRadius: 12,
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  },
+  dateInput: {
+    fontSize: 16,
+    color: '#333',
+    width: '80%',
+    flex: 1,
+  },
+  textArea: {
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 5,
+    height: 80,
+    textAlignVertical: 'top',
+    color: '#333',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    paddingBottom: 20,
+  },
+  menuButton: {
+    backgroundColor: '#4DB6C1', 
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    width: '45%',
+    alignItems: 'center',
+  },
+  addButton: {
+    backgroundColor: '#80FF80', 
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    width: '45%',
+    alignItems: 'center',
   },
   buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
-  cancelButton: {
-    marginTop: 15,
-    alignItems: 'center'
-  },
-  cancelText: {
-    color: '#7F8C8D',
+    color: '#333',
     fontSize: 14,
-    textDecorationLine: 'underline'
+    fontWeight: '600',
+    textTransform: 'uppercase'
+  },
+  smallIcon: {
+    width: 40,  
+    height: 40,
+    marginLeft: 10,
   }
 });
 
