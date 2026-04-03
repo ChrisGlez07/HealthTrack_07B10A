@@ -61,7 +61,7 @@ const useMenu = () => {
     try {
       const user = await StorageService.getItem("userData");
       const role = await StorageService.getItem("userRole");
-      
+
       if (user) {
         setUserData(user);
         setUserRole(role !== null ? parseInt(role) : null);
@@ -76,28 +76,28 @@ const useMenu = () => {
   };
 
   const getFilteredOptions = () => {
-    if (userRole === null) return []; 
+    if (userRole === null) return [];
 
     return allOptions.filter(option => {
-      if (userRole === 0) return true; 
+      if (userRole === 0) return true;
 
-      if (userRole === 1) { 
-        return option.name !== "RegisterMedic" && 
-               option.name !== "RegisterAsistent";
+      if (userRole === 1) {
+        return option.name !== "RegisterMedic" &&
+          option.name !== "RegisterAsistent";
       }
 
-      if (userRole === 2) { 
-        return option.name !== "RegisterMedic" && 
-               option.name !== "RegisterAsistent";
+      if (userRole === 2) {
+        return option.name !== "RegisterMedic" &&
+          option.name !== "RegisterAsistent";
       }
 
-      if (userRole === 3) { 
-        return option.name !== "RegisterMedic" && 
-               option.name !== "RegisterAsistent" && 
-               option.name !== "CancelRequest";
+      if (userRole === 3) {
+        return option.name !== "RegisterMedic" &&
+          option.name !== "RegisterAsistent" &&
+          option.name !== "CancelRequest";
       }
 
-      return false; 
+      return false;
     });
   };
 
@@ -117,7 +117,7 @@ const useMenu = () => {
   };
 
   const getUserRoleName = () => {
-    switch(userRole) {
+    switch (userRole) {
       case 0: return "Administrator";
       case 1: return "Medic";
       case 2: return "Assistant";
@@ -130,7 +130,7 @@ const useMenu = () => {
     userData,
     userRole,
     isLoading,
-    filteredOptions: getFilteredOptions(), 
+    filteredOptions: getFilteredOptions(),
     handleLogout,
     navigateTo,
     getUserRoleName

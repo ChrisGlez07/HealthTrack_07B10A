@@ -1,10 +1,16 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import useCurrentAppointment from '../hooks/useCurrentAppointment';
 
 const CurrentAppointment = () => {
   const router = useRouter();
-  const { filteredAppointments, isLoading, error, refresh } = useCurrentAppointment();
+  const { filteredAppointments, isLoading, error, refresh, handleCancelacion } = useCurrentAppointment();
+  
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -29,6 +35,38 @@ const CurrentAppointment = () => {
 
   const getStatusText = (status) => {
     return status === 'confirmada' ? 'CONFIRMADA' : 'PENDIENTE';
+  };
+
+  const handleCancelPress = (appointment) => {
+    setSelectedAppointment(appointment);
+    setModalVisible(true);
+    setCancelReason('');
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelReason.trim()) {
+      Alert.alert('Error', 'Por favor ingrese un motivo para la cancelación');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const success = await handleCancelacion(selectedAppointment._id || selectedAppointment.id, cancelReason);
+    setIsSubmitting(false);
+
+    if (success) {
+      setModalVisible(false);
+      setSelectedAppointment(null);
+      setCancelReason('');
+    }
+  };
+
+  const getPacienteDisplay = (appointment) => {
+    // Si tienes los datos del paciente poblados desde el backend
+    if (appointment.paciente_id && typeof appointment.paciente_id === 'object') {
+      return appointment.paciente_id.nombre || appointment.paciente_id.username || 'Paciente';
+    }
+    // Si solo tienes el ID
+    return appointment.paciente_id;
   };
 
   return (
@@ -56,7 +94,7 @@ const CurrentAppointment = () => {
           </View>
         ) : (
           filteredAppointments.map((item) => (
-            <View key={item.id} style={styles.card}>
+            <View key={item._id || item.id} style={styles.card}>
               <View style={styles.statusBadge}>
                 <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
                   {getStatusText(item.status)}
@@ -65,7 +103,7 @@ const CurrentAppointment = () => {
               
               <View style={styles.infoContainer}>
                 <Text style={styles.cardLabel}>
-                  PACIENTE: <Text style={styles.cardValue}>{item.paciente_id}</Text>
+                  PACIENTE: <Text style={styles.cardValue}>{getPacienteDisplay(item)}</Text>
                 </Text>
                 
                 <View style={styles.row}>
@@ -82,6 +120,14 @@ const CurrentAppointment = () => {
                     HORA: <Text style={styles.cardValue}>{formatTime(item.fecha_hora)}</Text>
                   </Text>
                 </View>
+
+                {/* Botón de Cancelación */}
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => handleCancelPress(item)}
+                >
+                  <Text style={styles.cancelButtonText}>SOLICITAR CANCELACIÓN</Text>
+                </TouchableOpacity>
               </View>
             </View>
           ))
@@ -97,6 +143,64 @@ const CurrentAppointment = () => {
           <Text style={styles.buttonText}>REGRESAR</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal para solicitar motivo de cancelación */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => !isSubmitting && setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Solicitar Cancelación</Text>
+            
+            {selectedAppointment && (
+              <View style={styles.modalInfo}>
+                <Text style={styles.modalInfoText}>
+                  Fecha: {formatDate(selectedAppointment.fecha_hora)} - {formatTime(selectedAppointment.fecha_hora)}
+                </Text>
+                <Text style={styles.modalInfoText}>
+                  Motivo original: {selectedAppointment.motivo}
+                </Text>
+              </View>
+            )}
+            
+            <Text style={styles.modalLabel}>Motivo de cancelación:</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Describa detalladamente el motivo de la cancelación..."
+              multiline
+              numberOfLines={4}
+              value={cancelReason}
+              onChangeText={setCancelReason}
+              editable={!isSubmitting}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalCancelButton]}
+                onPress={() => setModalVisible(false)}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.modalButtonText}>CANCELAR</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalConfirmButton]}
+                onPress={handleConfirmCancel}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>ENVIAR SOLICITUD</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -161,6 +265,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 8,
+    marginBottom: 12,
   },
   cardLabel: {
     fontSize: 12,
@@ -169,6 +274,19 @@ const styles = StyleSheet.create({
   },
   cardValue: {
     fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#E6B422',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 4,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   errorContainer: {
     alignItems: 'center',
@@ -220,7 +338,75 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: 'bold',
     fontSize: 14,
-  }
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalInfo: {
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 15,
+  },
+  modalInfoText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 5,
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    padding: 10,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: 20,
+    fontSize: 14,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  modalCancelButton: {
+    backgroundColor: '#ccc',
+  },
+  modalConfirmButton: {
+    backgroundColor: '#E6B422',
+  },
+  modalButtonText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#000',
+  },
 });
 
 export default CurrentAppointment;

@@ -26,7 +26,7 @@ const useLogin1 = () => {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-    
+
     if (!StorageService.validate('email', email)) {
       Alert.alert("Error", "Please enter a valid email address.");
       return;
@@ -41,17 +41,17 @@ const useLogin1 = () => {
 
     try {
       const data = {
-        email: email.trim().toLowerCase(), 
+        email: email.trim().toLowerCase(),
         password: password.trim()
       };
 
       const response = await api.post('/login', data, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '' 
+          'Authorization': ''
         }
       });
-      
+
       const { token, usuario } = response.data;
 
       if (!usuario) {
@@ -62,7 +62,7 @@ const useLogin1 = () => {
       }
 
       const userData = {
-        _id: usuario._id, 
+        _id: usuario._id,
         email: usuario.email,
         username: usuario.username,
         role: usuario.role,
@@ -74,7 +74,7 @@ const useLogin1 = () => {
       await StorageService.saveToken("userToken", token);
       await StorageService.setItem("userData", userData);
       await StorageService.setItem("lastEmail", email);
-      
+
       await StorageService.setItem("userRole", usuario.role.toString());
 
       setUserRole(usuario.role);
@@ -89,7 +89,7 @@ const useLogin1 = () => {
       } else if (usuario.role === 3) {
         welcomeMessage = `Welcome ${userData.username}!`;
       }
-      
+
       Alert.alert("Success", welcomeMessage);
       router.replace("/components/Menu");
 
@@ -123,7 +123,7 @@ const useLogin1 = () => {
       const token = await StorageService.getToken("userToken");
       const userData = await StorageService.getItem("userData");
       const userRole = await StorageService.getItem("userRole");
-      
+
       if (token && userData) {
         setUserRole(userRole ? parseInt(userRole) : null);
         return true;

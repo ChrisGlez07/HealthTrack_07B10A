@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Alert } from "react-native";
+import api from "../models/users";
 
 const useCurrentAppointment = () => {
   const [appointments, setAppointments] = useState([]);
@@ -11,99 +13,87 @@ const useCurrentAppointment = () => {
     setError(null);
     
     try {
-      // TODO: Reemplazar URL cuando esté disponible
-      // const token = localStorage.getItem('token'); // O como manejen el token
-      // const response = await fetch('URL/api/appointments/getAllAppointments', {
-      //   method: 'GET',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
-      // const data = await response.json();
+      // Llamada a la API real
+      const response = await api.get('/appointments/getAllAppointments');
       
-      // Mock data para desarrollo
-      const mockData = [
-        { 
-          id: 1, 
-          paciente_id: "660d5f8e9a3c1a2b4c5d6e7f", 
-          medico_id: "670e6a9f8b4d2c3e5f6a7b8c",
-          fecha_hora: "2024-03-28T10:00:00", 
-          status: "pendiente", 
-          motivo: "Agruras Persistentes" 
-        },
-        { 
-          id: 2, 
-          paciente_id: "660d5f8e9a3c1a2b4c5d6e80", 
-          medico_id: "670e6a9f8b4d2c3e5f6a7b8d",
-          fecha_hora: "2024-03-29T15:30:00", 
-          status: "confirmada", 
-          motivo: "Chequeo médico" 
-        },
-        { 
-          id: 3, 
-          paciente_id: "660d5f8e9a3c1a2b4c5d6e81", 
-          medico_id: "670e6a9f8b4d2c3e5f6a7b8e",
-          fecha_hora: "2024-03-30T09:00:00", 
-          status: "cancelada", 
-          motivo: "Cirugía menor en la rodilla" 
-        },
-        { 
-          id: 4, 
-          paciente_id: "660d5f8e9a3c1a2b4c5d6e82", 
-          medico_id: "670e6a9f8b4d2c3e5f6a7b8f",
-          fecha_hora: "2024-03-31T14:00:00", 
-          status: "completada", 
-          motivo: "Consulta general" 
-        },
-        { 
-          id: 5, 
-          paciente_id: "660d5f8e9a3c1a2b4c5d6e83", 
-          medico_id: "670e6a9f8b4d2c3e5f6a7b90",
-          fecha_hora: "2024-04-01T11:30:00", 
-          status: "pendiente", 
-          motivo: "Dolor de cabeza" 
-        },
-      ];
-
-      setAppointments(mockData);
+      // Asumiendo que la respuesta tiene la estructura con los datos
+      const allAppointments = response.data.data || response.data || [];
+      
+      setAppointments(allAppointments);
       
       // Filtrar solo citas con status pendiente o confirmada
-      const activeAppointments = mockData.filter(
+      const activeAppointments = allAppointments.filter(
         appointment => appointment.status === "pendiente" || appointment.status === "confirmada"
       );
       setFilteredAppointments(activeAppointments);
       
     } catch (error) {
       console.error("Error al obtener citas:", error);
-      setError(error.message || "Error al cargar las citas");
+      const errorMessage = error.response?.data?.message || error.message || "Error al cargar las citas";
+      setError(errorMessage);
+      Alert.alert("Error", errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Función para actualizar el status de una cita (opcional)
-  const updateAppointmentStatus = (appointmentId, newStatus) => {
-    setAppointments(prevAppointments =>
-      prevAppointments.map(appointment =>
-        appointment.id === appointmentId
-          ? { ...appointment, status: newStatus }
-          : appointment
-      )
-    );
+  // Función para solicitar cancelación de cita (status pendiente_aprobacion)
+  const handleCancelacion = async (appointmentId, motivoCancelacion) => {
+    if (!motivoCancelacion || motivoCancelacion.trim() === "") {
+      Alert.alert("Error", "Debe proporcionar un motivo para la cancelación");
+      return false;
+    }
+
+    setIsLoading(true);
     
-    // Actualizar también el filtrado
-    setFilteredAppointments(prevFiltered =>
-      prevFiltered
-        .map(appointment =>
-          appointment.id === appointmentId
-            ? { ...appointment, status: newStatus }
-            : appointment
-        )
-        .filter(
-          appointment => appointment.status === "pendiente" || appointment.status === "confirmada"
-        )
-    );
+    try {
+      // Actualizar el status a pendiente_aprobacion
+      const response = await api.patch(`/appointments/updateAppointment/${appointmentId}`, {
+        status: "pendiente_aprobacion",
+        cancelacion: {
+          motivo: motivoCancelacion,
+          fechaSolicitud: new Date().toISOString()
+          // solicitadoPor se manejaría desde el backend con el token del usuario
+        }
+      });
+      
+      // Actualizar el estado local después de la actualización exitosa
+      await fetchAllAppointments(); // Refrescar datos
+      
+      Alert.alert("Éxito", "Solicitud de cancelación enviada. Esperando aprobación.");
+      return true;
+      
+    } catch (error) {
+      console.error("Error al solicitar cancelación:", error);
+      const errorMessage = error.response?.data?.message || "Error al procesar la solicitud de cancelación";
+      Alert.alert("Error", errorMessage);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Función para actualizar el status de una cita (genérica)
+  const updateAppointmentStatus = async (appointmentId, newStatus, additionalData = {}) => {
+    setIsLoading(true);
+    
+    try {
+      const payload = { status: newStatus, ...additionalData };
+      const response = await api.patch(`/appointments/updateAppointment/${appointmentId}`, payload);
+      
+      // Actualizar el estado local después de la actualización exitosa
+      await fetchAllAppointments();
+      
+      return true;
+      
+    } catch (error) {
+      console.error("Error al actualizar cita:", error);
+      const errorMessage = error.response?.data?.message || "Error al actualizar la cita";
+      Alert.alert("Error", errorMessage);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Función para refrescar los datos
@@ -121,6 +111,7 @@ const useCurrentAppointment = () => {
     isLoading, 
     error,
     updateAppointmentStatus,
+    handleCancelacion,    // Nueva función específica para cancelación
     refresh 
   };
 };

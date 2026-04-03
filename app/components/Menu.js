@@ -22,25 +22,17 @@ export default function Menu() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+        {/* Sección del Logo (Puedes reemplazar la imagen con tu logo real de HealthTrack) */}
         <Image
-          style={styles.userAvatar}
+          style={styles.imagePrincipal}
           source={require('../assets/logo.png')}
           resizeMode="contain"
         />
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>{userData?.name || "Usuario"}</Text>
-          <Text style={styles.userEmail}>{userData?.email || "email@ejemplo.com"}</Text>
-          <Text style={styles.userRole}>{getUserRoleName()}</Text>
-        </View>
-        <TouchableOpacity style={styles.logoutButtonHeader} onPress={handleLogout}>
-          <Text style={styles.logoutTextHeader}>Logout</Text>
-        </TouchableOpacity>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.menuContainer}>
-        <Text style={styles.menuTitle}>Menu Options</Text>
-        <View style={styles.optionsGrid}>
+        {/* Lista de Opciones */}
+        <View style={styles.optionsList}>
           {filteredOptions.map((option) => (
             <TouchableOpacity
               key={option.id}
@@ -57,106 +49,86 @@ export default function Menu() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Botón de Logout */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Long out</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  imagePrincipal: {
+    width: 300,
+    height: 300,
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f5f5', // Fondo blanco como en la imagen
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
   },
-  header: {
-    flexDirection: 'row',
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 30,
+    paddingTop: 50,
+    paddingBottom: 20,
+  },
+  logoContainer: {
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    marginBottom: 40,
   },
-  userAvatar: {
+  logoIcon: {
     width: 60,
     height: 60,
-    borderRadius: 30,
-    marginRight: 15,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 2,
-  },
-  userRole: {
-    fontSize: 12,
-    color: '#007BFF',
-    fontWeight: '500',
-  },
-  logoutButtonHeader: {
-    backgroundColor: '#dc3545',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  logoutTextHeader: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  menuContainer: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  menuTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  optionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  optionCard: {
-    width: '31%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  optionIcon: {
-    width: 50,
-    height: 50,
     marginBottom: 10,
   },
+  logoText: {
+    fontSize: 22,
+    color: '#1a2b3c',
+  },
+  optionsList: {
+    flexDirection: 'column', // Cambiado de row a column
+    width: '100%',
+  },
+  optionCard: {
+    flexDirection: 'row', // Ícono a la izquierda, texto a la derecha
+    backgroundColor: '#dcdcdc', // Gris claro de la imagen
+    borderRadius: 25, // Bordes muy redondeados (forma de píldora)
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    marginBottom: 15,
+    alignItems: 'center',
+    // Sombras eliminadas para dar el aspecto plano del diseño original
+  },
+  optionIcon: {
+    width: 45,
+    height: 45,
+    marginRight: 20, // Espacio entre el ícono y el texto
+  },
   optionText: {
-    fontSize: 12,
-    textAlign: 'center',
-    color: '#333',
-    fontWeight: '500',
+    fontSize: 18,
+    color: '#000000',
+    fontWeight: '400',
+  },
+  logoutButton: {
+    backgroundColor: '#959ce3', // Color morado claro
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 30,
+    alignSelf: 'center', // Centrado en la parte inferior
+    marginBottom: 80,
+  },
+  logoutText: {
+    color: '#3b436e', // Texto oscuro acorde al fondo morado
+    fontSize: 18,
+    fontWeight: '400',
   },
 });
