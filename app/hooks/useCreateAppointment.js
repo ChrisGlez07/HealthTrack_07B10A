@@ -25,12 +25,13 @@ const useCreateAppointment = () => {
         setIsLoading(true);
         console.log("Obteniendo médicos del backend...");
         
-        // Endpoint/medicos/GetAllMedicos para obtener datos de medicos
         const response = await api.get('/medicos/GetAllMedicos');
         
         console.log("Respuesta de médicos:", response.data);
+        
+        // CORRECCIÓN: Usar _id en lugar de id para mantener consistencia
         const medicosFormateados = response.data.map(medico => ({
-          id: medico.id,  
+          _id: medico.id,  // Mapear 'id' del backend a '_id' para el frontend
           username: medico.username,
           especialidad: medico.especialidad,
           cedula: medico.cedula
@@ -71,96 +72,85 @@ const useCreateAppointment = () => {
   };
 
   const handleCreateAppointment = async () => {
-    if (!fecha || !hora || !medicoSeleccionado || !motivo) {
-      Alert.alert("Error", "Por favor completa todos los campos.");
+  if (!fecha || !hora || !medicoSeleccionado || !motivo) {
+    Alert.alert("Error", "Por favor completa todos los campos.");
+    return;
+  }
+
+  setIsLoading(true);
+  
+  try {
+    const userData = await StorageService.getItem('userData');
+
+    if (!userData) {
+      Alert.alert("Error", "No se encontraron datos de usuario. Por favor inicia sesión nuevamente.");
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const userData = await StorageService.getItem('userData');
+    const pacienteId = userData._id;
+    const userRole = typeof userData.role === 'string' ? parseInt(userData.role) : userData.role;
 
-      console.log("Datos completos del usuario:", userData);
-
-      if (!userData) {
-        Alert.alert("Error", "No se encontraron datos de usuario. Por favor inicia sesión nuevamente.");
-        setIsLoading(false);
-        return;
-      }
-
-      const pacienteId = userData._id;
-
-      // Convertir role a número si es string
-      const userRole = typeof userData.role === 'string' ? parseInt(userData.role) : userData.role;
-
-      console.log("Paciente ID obtenido:", pacienteId);
-      console.log("Rol del usuario (original):", userData.role);
-      console.log("Rol del usuario (convertido):", userRole);
-
-      if (!pacienteId) {
-        Alert.alert("Error", "No se encontró el ID del paciente. Por favor inicia sesión nuevamente.");
-        setIsLoading(false);
-        return;
-      }
-
-      const [h, m] = hora.split(':');
-      const finalDate = new Date(dateObject);
-      finalDate.setHours(parseInt(h), parseInt(m), 0);
-
-      const appointmentData = {
-        paciente_id: pacienteId,
-        medico_id: medicoSeleccionado,
-        fecha_hora: finalDate.toISOString(),
-        status: "pendiente",
-        motivo: motivo.trim(),
-      };
-
-      console.log("Enviando cita a API:", JSON.stringify(appointmentData, null, 2));
-
-      const response = await api.post('/appointments/createAppointments', appointmentData);
-
-      console.log("Respuesta de API:", response.data);
-
-      Alert.alert("Éxito", response.data.msg || response.data.message || "Cita agendada con éxito");
-
-      // Limpiar formulario
-      setFecha("");
-      setHora("");
-      setMedicoSeleccionado("");
-      setMotivo("");
-      setDateObject(new Date());
-
-      return true;
-
-    } catch (error) {
-      console.error("Error completo:", error);
-      console.error("Response error:", error.response?.data);
-      console.error("Status code:", error.response?.status);
-
-      let errorMessage = "No se pudo agendar la cita.";
-
-      if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        } else if (error.response.data.msg) {
-          errorMessage = error.response.data.msg;
-        } else if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response.data.error) {
-          errorMessage = error.response.data.error;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert("Error", errorMessage);
-      return false;
-    } finally {
+    if (!pacienteId) {
+      Alert.alert("Error", "No se encontró el ID del paciente.");
       setIsLoading(false);
+      return;
     }
-  };
 
+    if (userRole !== 3) {
+      Alert.alert("Error", `Solo los pacientes pueden agendar citas. Tu rol es: ${userRole}`);
+      setIsLoading(false);
+      return;
+    }
+
+    const [h, m] = hora.split(':');
+    const finalDate = new Date(dateObject);
+    finalDate.setHours(parseInt(h), parseInt(m), 0);
+
+    const appointmentData = {
+      paciente_id: pacienteId,
+      medico_id: medicoSeleccionado,
+      fecha_hora: finalDate.toISOString(),
+      status: "pendiente",
+      motivo: motivo.trim(),
+    };
+
+    console.log("\n OBJETO COMPLETO:");
+    console.log(JSON.stringify(appointmentData, null, 2));
+    console.log("==========================================\n");
+
+    const response = await api.post('/appointments/createAppointments', appointmentData);
+
+    console.log(" Respuesta exitosa:", response.data);
+    Alert.alert("Éxito", response.data.msg || response.data.message || "Cita agendada con éxito");
+
+    setFecha("");
+    setHora("");
+    setMedicoSeleccionado("");
+    setMotivo("");
+    setDateObject(new Date());
+
+    return true;
+
+  } catch (error) {
+    console.error("\n ERROR EN LA PETICIÓN:");
+    console.error("Status:", error.response?.status);
+    console.error("Mensaje:", error.response?.data?.msg || error.response?.data?.message);
+    console.error("Error completo:", error.response?.data);
+    
+    let errorMessage = "No se pudo agendar la cita.";
+    if (error.response?.data?.msg) {
+      errorMessage = error.response.data.msg;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
+    
+    Alert.alert("Error", errorMessage);
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+};
   return {
     fecha,
     hora,

@@ -4,7 +4,7 @@ import axios from "axios";
 import StorageService from "../helpers/StorageService";
 
 const api = axios.create({
-    baseURL: "https://healthtrack-hnsx.onrender.com/api",
+    baseURL: "https://healthtrack-1-uxq3.onrender.com/api",
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",
