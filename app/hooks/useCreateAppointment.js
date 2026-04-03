@@ -66,6 +66,10 @@ const useCreateAppointment = () => {
     }
 
     setIsLoading(true);
+    // Al inicio de handleCreateAppointment, después de setIsLoading(true)
+    const tokenPrueba = await StorageService.getToken("userToken");
+    console.log("🔑 Token antes de enviar cita:", tokenPrueba ? "Existe" : "NO EXISTE");
+    console.log("Token value:", tokenPrueba);
 
     try {
       const userData = await StorageService.getItem('userData');
