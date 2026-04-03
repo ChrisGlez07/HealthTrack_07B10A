@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import StorageService from "../helpers/StorageService";
 import api from "../models/users";
-// Después de await StorageService.saveToken("userToken", token);
 
 const useCreateAppointment = () => {
   const [fecha, setFecha] = useState("");
@@ -23,20 +22,32 @@ const useCreateAppointment = () => {
   useEffect(() => {
     const fetchMedicos = async () => {
       try {
-        // Aquí deberías hacer un GET real a tu endpoint de médicos
-        // const response = await api.get('/medicos');
-        // setMedicos(response.data);
-
-        // Temporal: datos de ejemplo CON IDS REALES
-        setMedicos([
-          { _id: "65f1a123456789012345678", username: "Dr. Garcia", especialidad: "Cardiología" },
-          { _id: "65f1b123456789012345679", username: "Dra. Perez", especialidad: "Pediatría" }
-        ]);
+        setIsLoading(true);
+        console.log("Obteniendo médicos del backend...");
+        
+        // Endpoint/medicos/GetAllMedicos para obtener datos de medicos
+        const response = await api.get('/medicos/GetAllMedicos');
+        
+        console.log("Respuesta de médicos:", response.data);
+        const medicosFormateados = response.data.map(medico => ({
+          id: medico.id,  
+          username: medico.username,
+          especialidad: medico.especialidad,
+          cedula: medico.cedula
+        }));
+        
+        console.log("Médicos formateados:", medicosFormateados);
+        setMedicos(medicosFormateados);
+        
       } catch (error) {
-        console.error("Error cargando médicos", error);
-        Alert.alert("Error", "No se pudieron cargar los médicos");
+        console.error("Error cargando médicos:", error);
+        console.error("Detalle del error:", error.response?.data);
+        Alert.alert("Error", "No se pudieron cargar los médicos. Por favor intenta de nuevo.");
+      } finally {
+        setIsLoading(false);
       }
     };
+    
     fetchMedicos();
   }, []);
 
@@ -66,11 +77,7 @@ const useCreateAppointment = () => {
     }
 
     setIsLoading(true);
-    // Al inicio de handleCreateAppointment, después de setIsLoading(true)
-    const tokenPrueba = await StorageService.getToken("userToken");
-    console.log("🔑 Token antes de enviar cita:", tokenPrueba ? "Existe" : "NO EXISTE");
-    console.log("Token value:", tokenPrueba);
-
+    
     try {
       const userData = await StorageService.getItem('userData');
 
@@ -84,7 +91,7 @@ const useCreateAppointment = () => {
 
       const pacienteId = userData._id;
 
-      // CORRECCIÓN: Convertir role a número si es string
+      // Convertir role a número si es string
       const userRole = typeof userData.role === 'string' ? parseInt(userData.role) : userData.role;
 
       console.log("Paciente ID obtenido:", pacienteId);
@@ -93,13 +100,6 @@ const useCreateAppointment = () => {
 
       if (!pacienteId) {
         Alert.alert("Error", "No se encontró el ID del paciente. Por favor inicia sesión nuevamente.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Verificar que el rol sea paciente (role === 3)
-      if (userRole !== 3) {
-        Alert.alert("Error", `Solo los pacientes pueden agendar citas. Tu rol es: ${userRole} (${typeof userRole})`);
         setIsLoading(false);
         return;
       }
@@ -124,6 +124,7 @@ const useCreateAppointment = () => {
 
       Alert.alert("Éxito", response.data.msg || response.data.message || "Cita agendada con éxito");
 
+      // Limpiar formulario
       setFecha("");
       setHora("");
       setMedicoSeleccionado("");

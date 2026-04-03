@@ -18,14 +18,18 @@ api.interceptors.request.use(
                 return config;
             }
 
-            const token = await StorageService.getToken("userToken");
-            console.log("Token obtenido para ruta", config.url, ":", token ? "Sí existe" : "No existe");
+             const token = await StorageService.getToken("userToken");
+            
+            console.log(`\n ===== ${config.url} =====`);
+            console.log(`Token: ${token || "NO EXISTE"}`);
             
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
-                console.log("Token agregado a la petición:", config.url);
-            } else {
-                console.log(" No hay token disponible para:", config.url);
+                console.log(`Header Authorization: Bearer ${token.substring(0, 30)}...`);
+            }
+            
+            if (config.data) {
+                console.log(`Body:`, config.data);
             }
             
             return config;
