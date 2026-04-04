@@ -1,3 +1,4 @@
+//Final App
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from "expo-router";
@@ -7,12 +8,29 @@ import useCreateAppointment from "../hooks/useCreateAppointment";
 const CreateAppointment = () => {
   const router = useRouter();
   const {
-    fecha, hora, setHora, horasDisponibles,
-    medicos, medicoSeleccionado, setMedicoSeleccionado,
-    motivo, setMotivo,
-    showPicker, setShowPicker, dateObject, onChangePicker,
-    handleCreateAppointment, isLoading
+    fecha, 
+    hora, 
+    setHora, 
+    horasDisponibles,
+    medicos, 
+    medicoSeleccionado, 
+    setMedicoSeleccionado,
+    pacientes, 
+    pacienteSeleccionado, 
+    setPacienteSeleccionado,
+    motivo, 
+    setMotivo,
+    showPicker, 
+    setShowPicker, 
+    dateObject, 
+    onChangePicker,
+    handleCreateAppointment, 
+    isLoading,
+    currentUser
   } = useCreateAppointment();
+
+  const isPaciente = currentUser?.role === "3";
+  const isMedico = currentUser?.role === "1";
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -25,29 +43,43 @@ const CreateAppointment = () => {
         <Text style={styles.headerTitle}>Agregar Cita</Text>
       </View>
 
-      {/* Selector de Médico */}
-      <View style={styles.blueBox}>
-        <Text style={styles.label}>DOCTOR</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={medicoSeleccionado}
-            onValueChange={(itemValue) => setMedicoSeleccionado(itemValue)}
-            style={styles.picker}
-            dropdownIconColor="#333"
-          >
-            <Picker.Item label="Seleccione un profesional..." value="" />
-            {medicos.map((medico) => (
-              <Picker.Item 
-                key={medico._id} 
-                label={`${medico.username} - ${medico.especialidad}`} 
-                value={medico._id} 
-              />
-            ))}
-          </Picker>
+      { !isPaciente && (
+        <View style={styles.blueBox}>
+          <Text style={styles.label}>PACIENTE</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={pacienteSeleccionado}
+              onValueChange={(itemValue) => setPacienteSeleccionado(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Seleccione un paciente..." value="" />
+              {pacientes.map((p) => (
+                <Picker.Item key={p._id} label={p.username} value={p._id} />
+              ))}
+            </Picker>
+          </View>
         </View>
-      </View>
+      )}
 
-      {/* Selector de Fecha */}
+      { !isMedico && (
+        <View style={styles.blueBox}>
+          <Text style={styles.label}>DOCTOR</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={medicoSeleccionado}
+              onValueChange={(itemValue) => setMedicoSeleccionado(itemValue)}
+              style={styles.picker}
+              dropdownIconColor="#333"
+            >
+              <Picker.Item label="Seleccione un profesional..." value="" />
+              {medicos.map((m) => (
+                <Picker.Item key={m._id} label={`${m.username} - ${m.especialidad}`} value={m._id} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      )}
+
       <TouchableOpacity 
         style={styles.blueBox} 
         onPress={() => setShowPicker(true)} 
@@ -69,7 +101,6 @@ const CreateAppointment = () => {
         </View>
       </TouchableOpacity>
 
-      {/* DateTimePicker */}
       {showPicker && (
         <DateTimePicker
           value={dateObject}
@@ -80,7 +111,6 @@ const CreateAppointment = () => {
         />
       )}
 
-      {/* Selector de Hora */}
       <View style={styles.blueBox}>
         <Text style={styles.label}>TIME</Text>
         <View style={styles.pickerWrapper}>
@@ -91,18 +121,13 @@ const CreateAppointment = () => {
             dropdownIconColor="#333"
           >
             <Picker.Item label="Seleccione una hora..." value="" />
-            {horasDisponibles.map((horaItem) => (
-              <Picker.Item 
-                key={horaItem} 
-                label={horaItem} 
-                value={horaItem} 
-              />
+            {horasDisponibles.map((h) => (
+              <Picker.Item key={h} label={h} value={h} />
             ))}
           </Picker>
         </View>
       </View>
 
-      {/* Motivo/Contexto */}
       <View style={[styles.blueBox, { height: 140 }]}>
         <Text style={styles.label}>CONTEXT / MOTIVO</Text>
         <TextInput 
@@ -117,7 +142,6 @@ const CreateAppointment = () => {
         />
       </View>
 
-      {/* Botones */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
           style={styles.menuButton} 
@@ -132,142 +156,133 @@ const CreateAppointment = () => {
           <TouchableOpacity 
             style={[
               styles.addButton, 
-              (!fecha || !hora || !medicoSeleccionado || !motivo) && styles.buttonDisabled
+              (!fecha || !hora || !motivo) && styles.buttonDisabled
             ]} 
             onPress={handleCreateAppointment}
-            disabled={!fecha || !hora || !medicoSeleccionado || !motivo}
+            disabled={!fecha || !hora || !motivo}
           >
             <Text style={styles.buttonText}>AÑADIR CITA</Text>
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Mostrar mensaje si no hay médicos */}
-      {medicos.length === 0 && !isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#80C0E0" />
-          <Text style={styles.loadingText}>Cargando médicos...</Text>
-        </View>
-      )}
     </ScrollView>
   );
 };
-
 const styles = StyleSheet.create({
-  container: { 
-    paddingHorizontal: 30, 
-    paddingVertical: 40, 
-    backgroundColor: '#FFFFFF', 
-    flexGrow: 1 
-  },
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logo: {
-    width: 300,
-    height: 150,
-    marginBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 28,
-    color: '#333',
-    fontWeight: '400',
-  },
-  blueBox: {
-    backgroundColor: '#80C0E0',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    justifyContent: 'center',
-  },
-  label: {
-    fontSize: 12,
-    color: '#333',
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  pickerWrapper: {
-    height: 40,
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 5,
-    paddingHorizontal: 5,
-  },
-  picker: {
-    width: '100%',
-    color: '#333',
-    backgroundColor: 'transparent',
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dateInput: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 5,
-    padding: 8,
-  },
-  textArea: {
-    backgroundColor: '#FFF',
-    borderRadius: 5,
-    padding: 10,
-    marginTop: 5,
-    height: 80,
-    textAlignVertical: 'top',
-    color: '#333',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30,
-    paddingBottom: 20,
-    gap: 20,
-  },
-  menuButton: {
-    backgroundColor: '#4DB6C1', 
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: 'center',
-  },
-  addButton: {
-    backgroundColor: '#4CAF50', 
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#A5D6A5',
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-    textTransform: 'uppercase'
-  },
-  smallIcon: {
-    width: 40,  
-    height: 40,
-    marginLeft: 10,
-  },
-  loadingContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#80C0E0',
-    fontSize: 14,
-  }
+  container: { 
+    paddingHorizontal: 30, 
+    paddingVertical: 40, 
+    backgroundColor: '#FFFFFF', 
+    flexGrow: 1 
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logo: {
+    width: 300,
+    height: 150,
+    marginBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 28,
+    color: '#333',
+    fontWeight: '400',
+  },
+  blueBox: {
+    backgroundColor: '#80C0E0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    justifyContent: 'center',
+  },
+  label: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  pickerWrapper: {
+    height: 40,
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5,
+    paddingHorizontal: 5,
+  },
+  picker: {
+    width: '100%',
+    color: '#333',
+    backgroundColor: 'transparent',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInput: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5,
+    padding: 8,
+  },
+  textArea: {
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 5,
+    height: 80,
+    textAlignVertical: 'top',
+    color: '#333',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    paddingBottom: 20,
+    gap: 20,
+  },
+  menuButton: {
+    backgroundColor: '#4DB6C1', 
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+  },
+  addButton: {
+    backgroundColor: '#4CAF50', 
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#A5D6A5',
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textTransform: 'uppercase'
+  },
+  smallIcon: {
+    width: 40,  
+    height: 40,
+    marginLeft: 10,
+  },
+  loadingContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#80C0E0',
+    fontSize: 14,
+  }
 });
 
 export default CreateAppointment;

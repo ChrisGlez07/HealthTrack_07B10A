@@ -1,3 +1,4 @@
+//Final App
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import useRegister from "../hooks/useRegister";

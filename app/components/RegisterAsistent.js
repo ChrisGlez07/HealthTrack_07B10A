@@ -1,3 +1,4 @@
+//Final App
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
