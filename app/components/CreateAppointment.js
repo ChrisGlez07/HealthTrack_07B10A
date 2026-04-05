@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   blueBox: {
-    backgroundColor: '#80C0E0',
+    backgroundColor: '#82e0d8',
     borderRadius: 8,
     padding: 12,
     marginBottom: 15,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   menuButton: {
-    backgroundColor: '#4DB6C1', 
+    backgroundColor: '#69b9c7', 
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 8,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButton: {
-    backgroundColor: '#4CAF50', 
+    backgroundColor: 'rgb(35, 176, 134)', 
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 8,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#A5D6A5',
+    backgroundColor: 'rgb(129, 215, 189)',
     opacity: 0.7,
   },
   buttonText: {

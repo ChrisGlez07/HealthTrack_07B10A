@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "../models/users";
 
 const usePendingAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -7,48 +8,32 @@ const usePendingAppointments = () => {
   const fetchPendingAppointments = async () => {
     setIsLoading(true);
     try {
-      // (GET): /api/appointments/getPendingAppointments
-      /* const response = await fetch('URL/api/appointments/getPendingAppointments', {
-          headers: { 'Authorization': `Bearer ${mockToken}` }
-      });
-      const data = await response.json(); 
-      */
-
-      const mockData = [
-        { id: 101, paciente_id: "Juan Pérez", motivo: "Dolor abdominal", fecha_hora: "05-04-2024 09:00", status: "pendiente" },
-        { id: 102, paciente_id: "Maria Garcia", motivo: "Revision Dental", fecha_hora: "05-04-2024 11:30", status: "pendiente" },
-        { id: 103, paciente_id: "Ricardo Sosa", motivo: "Migraña crónica", fecha_hora: "06-04-2024 10:00", status: "pendiente" },
-      ];
-
-      setAppointments(mockData);
+      const response = await api.get('/appointments/getPendingAppointments');
+      const data = response.data.pendientes || response.data;
+      setAppointments(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error al obtener citas pendientes:", error);
+      setAppointments([]); 
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleConfirmAppointment = async (id) => {
+    if (!id) {
+      console.error("ID no válido, abortando para evitar Error 500");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      console.log("Confirmando cita ID:", id);
-      
-      //(PATCH): /api/appointments/updateAppointmentStatus/{id}
-      // BODY: { "nuevoEstado": "confirmada" }
-      /*
-      const response = await fetch(`URL/api/appointments/updateAppointmentStatus/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nuevoEstado: 'confirmada' })
+      await api.patch(`/appointments/updateAppointmentStatus/${id}`, {
+        nuevoEstado: 'confirmada'
       });
-      const result = await response.json();
-      */
-
-      alert(`Cita ${id} confirmada con éxito.`);
-      
+      alert("Cita confirmada");
       await fetchPendingAppointments();
     } catch (error) {
-      console.error("Error al confirmar cita:", error);
+      console.error("Fallo al confirmar:", error.response?.data || error.message);
+      alert("Error en el servidor al confirmar");
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +43,7 @@ const usePendingAppointments = () => {
     fetchPendingAppointments();
   }, []);
 
-  return { 
-    appointments, 
-    isLoading, 
-    handleConfirmAppointment, 
-    refresh: fetchPendingAppointments 
-  };
+  return { appointments, isLoading, handleConfirmAppointment, refresh: fetchPendingAppointments };
 };
 
 export default usePendingAppointments;

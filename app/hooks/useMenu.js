@@ -50,6 +50,13 @@ const useMenu = () => {
       title: "Register Medic",
       icon: require("../assets/register_medic.png"),
       route: "/components/RegisterMedic",
+    },
+  {
+      id: 7,
+      name: "Pending Appointments",
+      title: "Pending Appointments",
+      icon: require("../assets/pending_appointments.png"),
+      route: "/components/PendingAppointments",
     }
   ];
 
@@ -94,7 +101,8 @@ const useMenu = () => {
       if (userRole === 3) {
         return option.name !== "RegisterMedic" &&
           option.name !== "RegisterAsistent" &&
-          option.name !== "CancelRequest";
+          option.name !== "CancelRequest" &&
+          option.name !== "Pending Appointments";
       }
 
       return false;

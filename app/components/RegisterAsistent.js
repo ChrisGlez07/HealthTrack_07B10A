@@ -103,7 +103,7 @@ const RegisterAsistent = () => {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.secondaryButton} onPress={() => router.back()}>
-              <Text style={styles.buttonText}>BACK TO LOGIN</Text>
+              <Text style={styles.buttonText}>BACK TO MENU</Text>
             </TouchableOpacity>
           </>
         )}
