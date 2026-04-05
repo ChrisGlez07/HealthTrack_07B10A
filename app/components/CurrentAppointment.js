@@ -1,19 +1,31 @@
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import useCurrentAppointment from '../hooks/useCurrentAppointment';
 
 const CurrentAppointment = () => {
   const router = useRouter();
-  const { filteredAppointments, isLoading, error, refresh, handleCancelacion } = useCurrentAppointment();
+  const { appointments, isLoading, error, refresh, handleCancelacion } = useCurrentAppointment();
   
+  const [activeFilter, setActiveFilter] = useState('todas'); 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const displayedAppointments = appointments.filter(item => {
+    if (activeFilter === 'todas') return true;
+    if (activeFilter === 'pendientes') return item.status === 'pendiente' || item.status === 'pendiente_aprobacion';
+    if (activeFilter === 'confirmadas') return item.status === 'confirmada';
+    if (activeFilter === 'canceladas') return item.status === 'cancelada';
+    return true;
+  });
+
   const formatDate = (dateString) => {
+    if (!dateString) return 'Fecha no disponible';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Fecha inválida';
     return date.toLocaleDateString('es-MX', {
       day: '2-digit',
       month: '2-digit',
@@ -22,22 +34,78 @@ const CurrentAppointment = () => {
   };
 
   const formatTime = (dateString) => {
+    if (!dateString) return 'Hora no disponible';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Hora inválida';
     return date.toLocaleTimeString('es-MX', {
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
-  const getStatusColor = (status) => {
-    return status === 'confirmada' ? '#76A055' : '#E6B422';
+  const canCancel = (status) => {
+    return status === 'pendiente' || status === 'confirmada';
+  };
+
+  const getMedicoDisplay = (appointment) => {
+    try {
+      if (appointment?.medico_id && typeof appointment.medico_id === 'object') {
+        const medico = appointment.medico_id;
+        return medico?.nombre || medico?.username || 'Médico';
+      }
+      if (typeof appointment?.medico_id === 'string') {
+        return appointment.medico_id;
+      }
+      return 'Médico';
+    } catch (error) {
+      return 'Médico';
+    }
+  };
+
+  const getPacienteDisplay = (appointment) => {
+    try {
+      if (appointment?.paciente_id && typeof appointment.paciente_id === 'object') {
+        const paciente = appointment.paciente_id;
+        return paciente?.nombre || paciente?.username || 'Paciente';
+      }
+      if (typeof appointment?.paciente_id === 'string') {
+        return appointment.paciente_id;
+      }
+      return 'Paciente';
+    } catch (error) {
+      return 'Paciente';
+    }
   };
 
   const getStatusText = (status) => {
-    return status === 'confirmada' ? 'CONFIRMADA' : 'PENDIENTE';
+    if (!status) return 'DESCONOCIDO';
+    switch(status) {
+      case 'pendiente': return 'PENDIENTE';
+      case 'pendiente_aprobacion': return 'PENDIENTE APROBACIÓN';
+      case 'confirmada': return 'CONFIRMADA';
+      case 'cancelada': return 'CANCELADA';
+      case 'completada': return 'COMPLETADA';
+      default: return status.toUpperCase();
+    }
+  };
+
+  const getStatusColor = (status) => {
+    if (!status) return '#999';
+    switch(status) {
+      case 'pendiente': return '#FFB74D';
+      case 'pendiente_aprobacion': return '#FF9800';
+      case 'confirmada': return '#82E076';
+      case 'cancelada': return '#FF6B6B';
+      case 'completada': return '#2196F3';
+      default: return '#999';
+    }
   };
 
   const handleCancelPress = (appointment) => {
+    if (!canCancel(appointment?.status)) {
+      Alert.alert('Error', `No se puede cancelar esta cita.`);
+      return;
+    }
     setSelectedAppointment(appointment);
     setModalVisible(true);
     setCancelReason('');
@@ -48,9 +116,8 @@ const CurrentAppointment = () => {
       Alert.alert('Error', 'Por favor ingrese un motivo para la cancelación');
       return;
     }
-
     setIsSubmitting(true);
-    const success = await handleCancelacion(selectedAppointment._id || selectedAppointment.id, cancelReason);
+    const success = await handleCancelacion(selectedAppointment?._id || selectedAppointment?.id, cancelReason);
     setIsSubmitting(false);
 
     if (success) {
@@ -60,91 +127,117 @@ const CurrentAppointment = () => {
     }
   };
 
-  const getPacienteDisplay = (appointment) => {
-    // Si tienes los datos del paciente poblados desde el backend
-    if (appointment.paciente_id && typeof appointment.paciente_id === 'object') {
-      return appointment.paciente_id.nombre || appointment.paciente_id.username || 'Paciente';
-    }
-    // Si solo tienes el ID
-    return appointment.paciente_id;
-  };
-
   return (
     <View style={styles.mainContainer}>
-      <Text style={styles.headerText}>HEALTHTRACK</Text>
-
-      <View style={styles.titleBanner}>
-        <Text style={styles.titleBannerText}>CITAS ACTIVAS</Text>
-        <Text style={styles.subtitleText}>Pendientes y Confirmadas</Text>
+      
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.menuIcon}>
+          <Feather name="menu" size={28} color="#000" />
+        </TouchableOpacity>
+        <View style={styles.logoContainer}>
+          <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <Text style={styles.brandText}>Health<Text style={{fontWeight: '400'}}>Track</Text></Text>
+        </View>
+        <View style={{ width: 28 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <Text style={styles.pageTitle}>HISTORIAL DE CITAS</Text>
+
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
+      >
         {isLoading ? (
           <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
         ) : error ? (
-          <View style={styles.errorContainer}>
+          <View style={styles.emptyContainer}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={refresh}>
               <Text style={styles.retryButtonText}>REINTENTAR</Text>
             </TouchableOpacity>
           </View>
-        ) : filteredAppointments.length === 0 ? (
+        ) : displayedAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No hay citas pendientes o confirmadas</Text>
+            <Text style={styles.emptyText}>No hay citas para mostrar en este filtro.</Text>
           </View>
         ) : (
-          filteredAppointments.map((item) => (
-            <View key={item._id || item.id} style={styles.card}>
-              <View style={styles.statusBadge}>
-                <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-                  {getStatusText(item.status)}
+          displayedAppointments.map((item) => (
+            <View key={item?._id || item?.id || Math.random().toString()} style={styles.card}>
+              
+             
+              <View style={styles.cardTopRow}>
+                <View style={styles.contextColumn}>
+                  <Text style={styles.contextText}>{item?.motivo || 'Sin motivo'}</Text>
+                  <Text style={styles.subContextText}>Dr. {getMedicoDisplay(item)}</Text>
+                  <Text style={styles.patientText}>Paciente: {getPacienteDisplay(item)}</Text>
+                </View>
+                
+                <View style={styles.dateColumn}>
+                  <Text style={styles.dateText}>{formatDate(item?.fecha_hora)}</Text>
+                  <Text style={styles.timeText}>{formatTime(item?.fecha_hora)}</Text>
+                  <View style={styles.clockCircle}>
+                    <Feather name="clock" size={16} color="#4DB6AC" />
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.statusContainer}>
+                <Text style={[styles.statusText, { color: getStatusColor(item?.status) }]}>
+                  {getStatusText(item?.status)}
                 </Text>
               </View>
-              
-              <View style={styles.infoContainer}>
-                <Text style={styles.cardLabel}>
-                  PACIENTE: <Text style={styles.cardValue}>{getPacienteDisplay(item)}</Text>
-                </Text>
-                
-                <View style={styles.row}>
-                  <Text style={styles.cardLabel}>
-                    MOTIVO: <Text style={styles.cardValue}>{item.motivo}</Text>
-                  </Text>
-                </View>
-                
-                <View style={styles.dateTimeContainer}>
-                  <Text style={styles.cardLabel}>
-                    FECHA: <Text style={styles.cardValue}>{formatDate(item.fecha_hora)}</Text>
-                  </Text>
-                  <Text style={styles.cardLabel}>
-                    HORA: <Text style={styles.cardValue}>{formatTime(item.fecha_hora)}</Text>
-                  </Text>
-                </View>
 
-                {/* Botón de Cancelación */}
+             
+              {canCancel(item?.status) && (
                 <TouchableOpacity 
                   style={styles.cancelButton}
                   onPress={() => handleCancelPress(item)}
                 >
                   <Text style={styles.cancelButtonText}>SOLICITAR CANCELACIÓN</Text>
                 </TouchableOpacity>
-              </View>
+              )}
+
+              {item?.status === 'pendiente_aprobacion' && (
+                <View style={styles.pendingApprovalContainer}>
+                  <Text style={styles.pendingApprovalText}>⏳ Cancelación solicitada - Esperando aprobación</Text>
+                </View>
+              )}
             </View>
           ))
         )}
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.refreshButton} onPress={refresh}>
-          <Text style={styles.buttonText}>ACTUALIZAR</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.returnButton} onPress={() => router.back()}>
-          <Text style={styles.buttonText}>REGRESAR</Text>
-        </TouchableOpacity>
+    
+      <View style={styles.filtersContainer}>
+        {activeFilter !== 'confirmadas' && (
+          <TouchableOpacity 
+            style={[styles.filterBtn, { backgroundColor: '#82E076' }]} 
+            onPress={() => setActiveFilter('confirmadas')}
+          >
+            <Text style={styles.filterBtnText}>CONFIRMADAS</Text>
+          </TouchableOpacity>
+        )}
+
+        {activeFilter !== 'canceladas' && (
+          <TouchableOpacity 
+            style={[styles.filterBtn, { backgroundColor: '#FF6B6B' }]} 
+            onPress={() => setActiveFilter('canceladas')}
+          >
+            <Text style={styles.filterBtnText}>CANCELADAS</Text>
+          </TouchableOpacity>
+        )}
+
+        {activeFilter !== 'pendientes' && (
+          <TouchableOpacity 
+            style={[styles.filterBtn, { backgroundColor: '#FFB74D' }]} 
+            onPress={() => setActiveFilter('pendientes')}
+          >
+            <Text style={styles.filterBtnText}>PENDIENTES</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Modal para solicitar motivo de cancelación */}
+     
       <Modal
         animationType="slide"
         transparent={true}
@@ -158,10 +251,13 @@ const CurrentAppointment = () => {
             {selectedAppointment && (
               <View style={styles.modalInfo}>
                 <Text style={styles.modalInfoText}>
-                  Fecha: {formatDate(selectedAppointment.fecha_hora)} - {formatTime(selectedAppointment.fecha_hora)}
+                   Fecha: {formatDate(selectedAppointment?.fecha_hora)} - {formatTime(selectedAppointment?.fecha_hora)}
                 </Text>
                 <Text style={styles.modalInfoText}>
-                  Motivo original: {selectedAppointment.motivo}
+                   Médico: {getMedicoDisplay(selectedAppointment)}
+                </Text>
+                <Text style={styles.modalInfoText}>
+                   Motivo original: {selectedAppointment?.motivo || 'No especificado'}
                 </Text>
               </View>
             )}
@@ -169,7 +265,8 @@ const CurrentAppointment = () => {
             <Text style={styles.modalLabel}>Motivo de cancelación:</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Describa detalladamente el motivo de la cancelación..."
+              placeholder="Describa el motivo"
+              placeholderTextColor="#999"
               multiline
               numberOfLines={4}
               value={cancelReason}
@@ -194,13 +291,14 @@ const CurrentAppointment = () => {
                 {isSubmitting ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.modalButtonText}>ENVIAR SOLICITUD</Text>
+                  <Text style={styles.modalButtonText}>ENVIAR</Text>
                 )}
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
     </View>
   );
 };
@@ -210,87 +308,134 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingTop: 50,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-  },
-  headerText: {
-    fontSize: 28,
-    textAlign: 'center',
-    fontWeight: '300',
-    letterSpacing: 2,
-    marginBottom: 30,
-  },
-  titleBanner: {
-    backgroundColor: '#D9D9D9',
-    padding: 8,
-    borderBottomWidth: 1,
-    borderColor: '#000',
     marginBottom: 20,
+  },
+  menuIcon: {
+    padding: 5,
+  },
+  logoContainer: {
     alignItems: 'center',
   },
-  titleBannerText: {
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 14,
+  logo: {
+    width: 40,
+    height: 40,
+    marginBottom: 5,
   },
-  subtitleText: {
+  brandText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  pageTitle: {
+    fontSize: 22,
     textAlign: 'center',
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    fontWeight: '400',
+    letterSpacing: 1,
+    marginBottom: 20,
+    textTransform: 'uppercase'
   },
   scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 20,
   },
   card: {
     backgroundColor: '#D9D9D9',
+    borderRadius: 6,
     padding: 15,
     marginBottom: 15,
-    borderRadius: 4,
   },
-  statusBadge: {
-    marginBottom: 10,
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  contextColumn: {
+    flex: 1,
+    marginRight: 10,
+  },
+  contextText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#000',
+    marginBottom: 4,
+  },
+  subContextText: {
+    fontSize: 12,
+    color: '#555',
+    marginTop: 2,
+  },
+  patientText: {
+    fontSize: 11,
+    color: '#777',
+    marginTop: 2,
+  },
+  dateColumn: {
+    alignItems: 'flex-end',
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '500',
+  },
+  timeText: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2,
+  },
+  clockCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#4DB6AC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  statusContainer: {
+    marginTop: 12,
+    marginBottom: 8,
   },
   statusText: {
     fontWeight: 'bold',
-    fontSize: 12,
-  },
-  infoContainer: {
-    flex: 1,
-  },
-  row: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  dateTimeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  cardLabel: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#000',
-  },
-  cardValue: {
-    fontWeight: 'bold',
+    fontSize: 11,
   },
   cancelButton: {
-    backgroundColor: '#E6B422',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    backgroundColor: '#fff',
+    paddingVertical: 8,
     borderRadius: 4,
     marginTop: 10,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   cancelButtonText: {
     color: '#000',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 11,
   },
-  errorContainer: {
+  pendingApprovalContainer: {
+    marginTop: 10,
+    alignItems: 'flex-start',
+  },
+  pendingApprovalText: {
+    fontSize: 11,
+    color: '#E65100',
+    fontWeight: '600',
+  },
+  emptyContainer: {
     alignItems: 'center',
     marginTop: 40,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#666',
   },
   errorText: {
     color: 'red',
@@ -309,42 +454,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 12,
   },
-  emptyContainer: {
-    alignItems: 'center',
-    marginTop: 40,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    marginTop: 10,
-    marginBottom: 20,
+  filtersContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 80,
+    paddingTop: 10,
+    backgroundColor: '#fff',
   },
-  refreshButton: {
-    backgroundColor: '#76A055',
-    width: '100%',
-    padding: 15,
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 15,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  returnButton: {
-    backgroundColor: '#D9D9D9',
-    width: '100%',
-    padding: 15,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontWeight: 'bold',
-    fontSize: 14,
+  filterBtnText: {
+    color: '#000',
+    fontWeight: '500',
+    fontSize: 11,
   },
   // Modal Styles
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContainer: {
     backgroundColor: '#fff',
@@ -400,7 +536,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ccc',
   },
   modalConfirmButton: {
-    backgroundColor: '#E6B422',
+    backgroundColor: 'rgb(94, 96, 221)',
   },
   modalButtonText: {
     fontWeight: 'bold',

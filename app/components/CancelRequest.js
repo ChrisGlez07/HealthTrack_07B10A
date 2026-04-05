@@ -1,39 +1,70 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import useCancelRequest from '../hooks/useCancelRequest';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const CancelRequest = () => {
   const router = useRouter();
-  const { appointments, isLoading, handleAcceptCancel } = useCancelRequest();
+  const { appointments, isLoading, handleConfirmAppointment } = useCancelRequest();
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Sin fecha";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Fecha Inválida";
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch (e) { return "Error fecha"; }
+  };
 
   return (
     <View style={styles.mainContainer}>
-      <Text style={styles.headerText}>HEALTHTRACK</Text>
-
-      <View style={styles.titleBanner}>
-        <Text style={styles.titleBannerText}>PETICIÓN DE CANCELACIÓN</Text>
+      <View style={styles.headerContainer}>
+        <Image 
+          source={require('../assets/HealthTrack.png')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
+
+      <Text style={styles.titleText}>CITAS PENDIENTES A CONFIRMAR</Text>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {isLoading ? (
-          <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
+          <ActivityIndicator size="large" color="#34b7f1" style={{ marginTop: 20 }} />
+        ) : appointments.length === 0 ? (
+          <Text style={styles.emptyText}>No hay citas pendientes.</Text>
         ) : (
           appointments.map((item) => (
-            <View key={item.id} style={styles.card}>
+            <View key={item._id || item.id} style={styles.card}>
+              
               <View style={styles.infoContainer}>
-                <Text style={styles.cardLabel}>PACIENTE: <Text style={styles.cardValue}>{item.paciente_id}</Text></Text>
-                <View style={styles.row}>
-                    <Text style={styles.cardLabel}>CONTEXT: <Text style={styles.cardValue}>{item.motivo}</Text></Text>
-                    <Text style={styles.cardLabel}>DATE: <Text style={styles.cardValue}>{item.fecha_hora.split(' ')[0]}</Text></Text>
+                <Text style={styles.cardLabel}>
+                  PACIENTE: <Text style={styles.cardValue}>
+                    {item.paciente_id?.username || "Usuario Desconocido"}
+                  </Text>
+                </Text>
+                
+                <View style={styles.reasonSection}>
+                  <Text style={styles.cardLabel}>MOTIVO:</Text>
+                  <Text style={styles.cardValueReason}>{item.motivo || "No especificado"}</Text>
                 </View>
               </View>
               
-              <TouchableOpacity 
-                style={styles.acceptButton} 
-                onPress={() => handleAcceptCancel(item.id)}
-              >
-                <Text style={styles.acceptButtonText}>ACEPTAR</Text>
-              </TouchableOpacity>
+              <View style={styles.rightActionsContainer}>
+                <View style={styles.dateBadge}>
+                  <Text style={styles.dateLabel}>FECHA:</Text>
+                  <Text style={styles.dateText}>{formatDate(item.fecha_hora)}</Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.confirmButton} 
+                  onPress={() => handleConfirmAppointment(item._id || item.id)}
+                >
+                  <Text style={styles.confirmButtonText}>CONFIRMAR</Text>
+                </TouchableOpacity>
+              </View>
+
             </View>
           ))
         )}
@@ -53,83 +84,82 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
   },
-  headerText: {
-    fontSize: 28,
-    textAlign: 'center',
-    fontWeight: '300',
-    letterSpacing: 2,
-    marginBottom: 30,
-  },
-  addButton: {
-    backgroundColor: '#D9D9D9',
-    width: 120,
-    padding: 12,
-    marginBottom: 20,
+  headerContainer: {
+    width: '100%',
+    height: 120,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    padding: 10,
   },
-  titleBanner: {
-    backgroundColor: '#D9D9D9',
-    padding: 8,
-    borderBottomWidth: 1,
-    borderColor: '#000',
-    marginBottom: 20,
-  },
-  titleBannerText: {
+  logo: { width: '100%', height: '100%' },
+  titleText: {
+    fontSize: 18,
     textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 20,
+    color: '#333',
+    letterSpacing: 1,
   },
-  scrollContent: {
-    paddingBottom: 20,
-  },
+  scrollContent: { paddingBottom: 20 },
   card: {
-    backgroundColor: '#D9D9D9',
+    backgroundColor: '#e8ecf8', 
     padding: 15,
     marginBottom: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row', 
+    alignItems: 'flex-start',
+    borderRadius: 20, 
+    borderWidth: 2,
+    borderColor: '#82e0d8', 
+    elevation: 2, 
   },
   infoContainer: {
-    flex: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
+    flex: 1, 
     marginRight: 10,
   },
-  cardLabel: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#000',
+  rightActionsContainer: {
+    alignItems: 'flex-end', 
+    justifyContent: 'center',
+    gap: 10, 
   },
-  cardValue: {
-    fontWeight: 'bold',
+  dateBadge: {
+    backgroundColor: '#82e0d8',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 85, 
   },
-  acceptButton: {
-    backgroundColor: '#76A055',
+  dateLabel: { fontSize: 7, color: '#fff', fontWeight: '400' },
+  dateText: { color: '#fff', fontWeight: 'bold', fontSize: 10 },
+  reasonSection: { marginTop: 15 },
+  cardLabel: { fontSize: 10, fontWeight: '400', color: '#666', textTransform: 'uppercase' },
+  cardValue: { fontWeight: 'bold', fontSize: 13, color: '#000' },
+  cardValueReason: { fontWeight: 'bold', fontSize: 12, color: '#333', marginTop: 2 },
+  confirmButton: {
+    backgroundColor: '#fff', 
     paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 2,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#82e0d8',
+    minWidth: 85,
+    alignItems: 'center',
   },
-  acceptButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
+  confirmButtonText: { color: '#444', fontWeight: 'bold', fontSize: 10 },
   returnButton: {
-    backgroundColor: '#D9D9D9',
+    backgroundColor: '#e1e8f9', 
     width: '100%',
     padding: 15,
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 20,
+    borderRadius: 25, 
+    borderWidth: 2,
+    borderColor: '#82e0d8',
   },
-  buttonText: {
-    fontWeight: 'bold',
-    fontSize: 14,
-  }
+  buttonText: { fontWeight: 'bold', fontSize: 14, color: '#444' },
+  emptyText: { textAlign: 'center', marginTop: 50, color: '#999', fontSize: 16 }
 });
 
 export default CancelRequest;
