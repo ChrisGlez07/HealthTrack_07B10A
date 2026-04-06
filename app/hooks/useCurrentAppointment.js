@@ -7,6 +7,7 @@ const useCurrentAppointment = () => {
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("activas");
 
   const fetchAllAppointments = async () => {
     setIsLoading(true);
@@ -22,31 +23,48 @@ const useCurrentAppointment = () => {
       console.log("Data:", JSON.stringify(response.data, null, 2));
 
       let allAppointments = [];
+      //Respuesta 
+      if (response.data && typeof response.data === 'object') {
 
-      if (response.data && Array.isArray(response.data.pendientes)) {
-        allAppointments = response.data.pendientes;
-        console.log(` Encontradas ${allAppointments.length} citas pendientes`);
-      } else if (response.data && Array.isArray(response.data.confirmadas)) {
-        allAppointments = [...allAppointments, ...response.data.confirmadas];
-        console.log(` Agregadas ${response.data.confirmadas.length} citas confirmadas`);
-      } else if (response.data && typeof response.data === 'object') {
-        Object.keys(response.data).forEach(key => {
-          if (Array.isArray(response.data[key])) {
-            allAppointments = [...allAppointments, ...response.data[key]];
-            console.log(` Agregadas ${response.data[key].length} citas de la categoría: ${key}`);
-          }
-        });
+        // Con esto proceso la respuesta .pendientes
+        if (Array.isArray(response.data.pendientes)) {
+          allAppointments = [...allAppointments, ...response.data.pendientes];
+          console.log(` Agregadas ${response.data.pendientes.length} citas pendientes`);
+        }
+
+        // Con esto proceso la respuesta .confirmadas
+        if (Array.isArray(response.data.confirmadas)) {
+          allAppointments = [...allAppointments, ...response.data.confirmadas];
+          console.log(` Agregadas ${response.data.confirmadas.length} citas confirmadas`);
+        }
+
+        // Con esto proceso la respuesta .canceladas
+        if (Array.isArray(response.data.canceladas)) {
+          allAppointments = [...allAppointments, ...response.data.canceladas];
+          console.log(` Agregadas ${response.data.canceladas.length} citas canceladas`);
+        }
+
       } else if (Array.isArray(response.data)) {
+        // Si la respuesta es directamente un array
         allAppointments = response.data;
         console.log(" response.data es un array directo");
       }
 
       if (!Array.isArray(allAppointments)) {
-        console.error("❌ No se pudo obtener un array de citas");
+        console.error(" No se pudo obtener un array de citas");
         throw new Error("La respuesta del servidor no contiene un array de citas");
       }
 
       console.log(` Total de citas recibidas: ${allAppointments.length}`);
+
+      // Estadísticas por estado
+      const stats = {
+        pendiente: allAppointments.filter(a => a.status === "pendiente").length,
+        confirmada: allAppointments.filter(a => a.status === "confirmada").length,
+        cancelada: allAppointments.filter(a => a.status === "cancelada").length,
+        rechazada: allAppointments.filter(a => a.status === "rechazada").length
+      };
+      console.log(" Estadísticas:", stats);
 
       if (allAppointments.length > 0) {
         console.log(" Ejemplo de cita:", JSON.stringify(allAppointments[0], null, 2));
@@ -54,13 +72,8 @@ const useCurrentAppointment = () => {
 
       setAppointments(allAppointments);
 
-      const activeAppointments = allAppointments.filter(
-        appointment => appointment.status === "pendiente" || appointment.status === "confirmada"
-      );
-
-      console.log(` Citas activas (pendiente/confirmada): ${activeAppointments.length}`);
-
-      setFilteredAppointments(activeAppointments);
+      //soo aplicar filtro activo
+      applyFilter(allAppointments, activeFilter);
 
     } catch (error) {
       console.error(" Error al obtener citas:", error);
@@ -89,6 +102,55 @@ const useCurrentAppointment = () => {
     }
   };
 
+  // Función para aplicar filtros
+  const applyFilter = (appointmentsList, filterType) => {
+    if (!appointmentsList || !Array.isArray(appointmentsList)) {
+      setFilteredAppointments([]);
+      return;
+    }
+
+    let filtered = [];
+
+    switch (filterType) {
+      case "activas":
+        filtered = appointmentsList.filter(
+          app => app.status === "pendiente" || app.status === "confirmada"
+        );
+        break;
+      case "pendientes":
+        filtered = appointmentsList.filter(
+          app => app.status === "pendiente"
+        );
+        break;
+      case "confirmadas":
+        filtered = appointmentsList.filter(
+          app => app.status === "confirmada"
+        );
+        break;
+      case "canceladas":
+        filtered = appointmentsList.filter(
+          app => app.status === "cancelada" || app.status === "rechazada"
+        );
+        break;
+      case "todas":
+        filtered = [...appointmentsList];
+        break;
+      default:
+        filtered = appointmentsList.filter(
+          app => app.status === "pendiente" || app.status === "confirmada"
+        );
+    }
+
+    console.log(`🔍 Filtro aplicado: ${filterType} -> ${filtered.length} citas`);
+    setFilteredAppointments(filtered);
+  };
+
+  // Cambiar filtro activo
+  const changeFilter = (newFilter) => {
+    setActiveFilter(newFilter);
+    applyFilter(appointments, newFilter);
+  };
+
   // Función para solicitar cancelación de cita
   const handleCancelacion = async (appointmentId, motivoCancelacion) => {
     if (!motivoCancelacion || motivoCancelacion.trim() === "") {
@@ -102,11 +164,10 @@ const useCurrentAppointment = () => {
       console.log(` Solicitando cancelación para cita: ${appointmentId}`);
       console.log(` Motivo: ${motivoCancelacion}`);
 
-      //Enviar solo el status y el motivo dentro de cancelacion
       const payload = {
         motivo: motivoCancelacion.trim()
       };
-
+//payload para a;adir id de citas en endpoint de cancelacion
       console.log(" Payload a enviar:", JSON.stringify(payload, null, 2));
       console.log(" URL:", `/appointments/requestCancellation/${appointmentId}`);
 
@@ -114,7 +175,6 @@ const useCurrentAppointment = () => {
 
       console.log(" Respuesta cancelación:", response.data);
 
-      // Refrescar datos después de la actualización exitosa
       await fetchAllAppointments();
 
       Alert.alert("Éxito", response.data.message || "Solicitud de cancelación enviada. Esperando aprobación.");
@@ -151,7 +211,7 @@ const useCurrentAppointment = () => {
       console.log(` Actualizando cita ${appointmentId} a status: ${newStatus}`);
 
       const payload = { status: newStatus, ...additionalData };
-      console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log(" Payload:", JSON.stringify(payload, null, 2));
 
       const response = await api.patch(`/appointments/updateAppointment/${appointmentId}`, payload);
 
@@ -191,6 +251,8 @@ const useCurrentAppointment = () => {
     filteredAppointments,
     isLoading,
     error,
+    activeFilter,
+    changeFilter,
     updateAppointmentStatus,
     handleCancelacion,
     refresh

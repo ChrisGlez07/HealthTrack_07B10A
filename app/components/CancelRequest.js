@@ -93,7 +93,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 10,
   },
-  logo: { width: '100%', height: '100%' },
+   logo: {
+    width: 300,
+    height: 300,
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
   titleText: {
     fontSize: 18,
     textAlign: 'center',

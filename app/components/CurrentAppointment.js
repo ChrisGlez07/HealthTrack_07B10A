@@ -7,8 +7,8 @@ import useCurrentAppointment from '../hooks/useCurrentAppointment';
 const CurrentAppointment = () => {
   const router = useRouter();
   const { appointments, isLoading, error, refresh, handleCancelacion } = useCurrentAppointment();
-  
-  const [activeFilter, setActiveFilter] = useState('todas'); 
+
+  const [activeFilter, setActiveFilter] = useState('todas');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
@@ -79,7 +79,7 @@ const CurrentAppointment = () => {
 
   const getStatusText = (status) => {
     if (!status) return 'DESCONOCIDO';
-    switch(status) {
+    switch (status) {
       case 'pendiente': return 'PENDIENTE';
       case 'pendiente_aprobacion': return 'PENDIENTE APROBACIÓN';
       case 'confirmada': return 'CONFIRMADA';
@@ -91,7 +91,7 @@ const CurrentAppointment = () => {
 
   const getStatusColor = (status) => {
     if (!status) return '#999';
-    switch(status) {
+    switch (status) {
       case 'pendiente': return '#FFB74D';
       case 'pendiente_aprobacion': return '#FF9800';
       case 'confirmada': return '#82E076';
@@ -129,21 +129,19 @@ const CurrentAppointment = () => {
 
   return (
     <View style={styles.mainContainer}>
-      
+      <TouchableOpacity onPress={() => router.back()} style={styles.menuIcon}>
+        <Feather name="menu" size={28} color="#000" />
+      </TouchableOpacity>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.menuIcon}>
-          <Feather name="menu" size={28} color="#000" />
-        </TouchableOpacity>
         <View style={styles.logoContainer}>
           <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-          <Text style={styles.brandText}>Health<Text style={{fontWeight: '400'}}>Track</Text></Text>
+          <Text style={styles.brandText}>
+            Health<Text style={{ fontWeight: '400' }}>Track</Text>
+          </Text>
         </View>
-        <View style={{ width: 28 }} />
       </View>
-
       <Text style={styles.pageTitle}>HISTORIAL DE CITAS</Text>
-
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
       >
@@ -163,15 +161,15 @@ const CurrentAppointment = () => {
         ) : (
           displayedAppointments.map((item) => (
             <View key={item?._id || item?.id || Math.random().toString()} style={styles.card}>
-              
-             
+
+
               <View style={styles.cardTopRow}>
                 <View style={styles.contextColumn}>
                   <Text style={styles.contextText}>{item?.motivo || 'Sin motivo'}</Text>
                   <Text style={styles.subContextText}>Dr. {getMedicoDisplay(item)}</Text>
                   <Text style={styles.patientText}>Paciente: {getPacienteDisplay(item)}</Text>
                 </View>
-                
+
                 <View style={styles.dateColumn}>
                   <Text style={styles.dateText}>{formatDate(item?.fecha_hora)}</Text>
                   <Text style={styles.timeText}>{formatTime(item?.fecha_hora)}</Text>
@@ -187,9 +185,9 @@ const CurrentAppointment = () => {
                 </Text>
               </View>
 
-             
+
               {canCancel(item?.status) && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.cancelButton}
                   onPress={() => handleCancelPress(item)}
                 >
@@ -207,11 +205,11 @@ const CurrentAppointment = () => {
         )}
       </ScrollView>
 
-    
+
       <View style={styles.filtersContainer}>
         {activeFilter !== 'confirmadas' && (
-          <TouchableOpacity 
-            style={[styles.filterBtn, { backgroundColor: '#82E076' }]} 
+          <TouchableOpacity
+            style={[styles.filterBtn, { backgroundColor: '#82E076' }]}
             onPress={() => setActiveFilter('confirmadas')}
           >
             <Text style={styles.filterBtnText}>CONFIRMADAS</Text>
@@ -219,8 +217,8 @@ const CurrentAppointment = () => {
         )}
 
         {activeFilter !== 'canceladas' && (
-          <TouchableOpacity 
-            style={[styles.filterBtn, { backgroundColor: '#FF6B6B' }]} 
+          <TouchableOpacity
+            style={[styles.filterBtn, { backgroundColor: '#FF6B6B' }]}
             onPress={() => setActiveFilter('canceladas')}
           >
             <Text style={styles.filterBtnText}>CANCELADAS</Text>
@@ -228,8 +226,8 @@ const CurrentAppointment = () => {
         )}
 
         {activeFilter !== 'pendientes' && (
-          <TouchableOpacity 
-            style={[styles.filterBtn, { backgroundColor: '#FFB74D' }]} 
+          <TouchableOpacity
+            style={[styles.filterBtn, { backgroundColor: '#FFB74D' }]}
             onPress={() => setActiveFilter('pendientes')}
           >
             <Text style={styles.filterBtnText}>PENDIENTES</Text>
@@ -237,7 +235,7 @@ const CurrentAppointment = () => {
         )}
       </View>
 
-     
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -247,21 +245,21 @@ const CurrentAppointment = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Solicitar Cancelación</Text>
-            
+
             {selectedAppointment && (
               <View style={styles.modalInfo}>
                 <Text style={styles.modalInfoText}>
-                   Fecha: {formatDate(selectedAppointment?.fecha_hora)} - {formatTime(selectedAppointment?.fecha_hora)}
+                  Fecha: {formatDate(selectedAppointment?.fecha_hora)} - {formatTime(selectedAppointment?.fecha_hora)}
                 </Text>
                 <Text style={styles.modalInfoText}>
-                   Médico: {getMedicoDisplay(selectedAppointment)}
+                  Médico: {getMedicoDisplay(selectedAppointment)}
                 </Text>
                 <Text style={styles.modalInfoText}>
-                   Motivo original: {selectedAppointment?.motivo || 'No especificado'}
+                  Motivo original: {selectedAppointment?.motivo || 'No especificado'}
                 </Text>
               </View>
             )}
-            
+
             <Text style={styles.modalLabel}>Motivo de cancelación:</Text>
             <TextInput
               style={styles.modalInput}
@@ -273,17 +271,17 @@ const CurrentAppointment = () => {
               onChangeText={setCancelReason}
               editable={!isSubmitting}
             />
-            
+
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.modalCancelButton]}
                 onPress={() => setModalVisible(false)}
                 disabled={isSubmitting}
               >
                 <Text style={styles.modalButtonText}>CANCELAR</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.modalButton, styles.modalConfirmButton]}
                 onPress={handleConfirmCancel}
                 disabled={isSubmitting}
@@ -306,26 +304,25 @@ const CurrentAppointment = () => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
     paddingTop: 50,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center', 
     paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  menuIcon: {
-    padding: 5,
   },
   logoContainer: {
     alignItems: 'center',
+    flex: 1, 
   },
   logo: {
-    width: 40,
-    height: 40,
-    marginBottom: 5,
+    width: 300,
+    height: 300,
+  },
+  menuIcon: {
+    padding: 5,
   },
   brandText: {
     fontSize: 16,

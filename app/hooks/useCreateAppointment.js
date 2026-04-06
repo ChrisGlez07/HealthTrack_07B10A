@@ -4,172 +4,172 @@ import StorageService from "../helpers/StorageService";
 import api from "../models/users";
 
 const useCreateAppointment = () => {
-  const [fecha, setFecha] = useState("");
-  const [hora, setHora] = useState("");
-  const [dateObject, setDateObject] = useState(new Date());
-  const [showPicker, setShowPicker] = useState(false);
+    const [fecha, setFecha] = useState("");
+    const [hora, setHora] = useState("");
+    const [dateObject, setDateObject] = useState(new Date());
+    const [showPicker, setShowPicker] = useState(false);
 
-  const [medicos, setMedicos] = useState([]);
-  const [medicoSeleccionado, setMedicoSeleccionado] = useState("");
-  const [pacientes, setPacientes] = useState([]);
-  const [pacienteSeleccionado, setPacienteSeleccionado] = useState("");
-  const [motivo, setMotivo] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+    const [medicos, setMedicos] = useState([]);
+    const [medicoSeleccionado, setMedicoSeleccionado] = useState("");
+    const [pacientes, setPacientes] = useState([]);
+    const [pacienteSeleccionado, setPacienteSeleccionado] = useState("");
+    const [motivo, setMotivo] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
-  const horasDisponibles = [
-    "08:00", "09:00", "10:00", "11:00", "12:00",
-    "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
-  ];
+    const horasDisponibles = [
+        "08:00", "09:00", "10:00", "11:00", "12:00",
+        "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
+    ];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
 
-        const userData = await StorageService.getItem('userData');
-        setCurrentUser(userData);
+                const userData = await StorageService.getItem('userData');
+                setCurrentUser(userData);
 
-        console.log("Obteniendo datos del backend...");
-        
-        const resMedicos = await api.get('/medicos/GetAllMedicos');
-        const resPacientes = await api.get('/pacientes/getAllPacientes');
-        
-        const medicosFormateados = resMedicos.data.map(medico => ({
-          _id: medico.id,
-          username: medico.username,
-          especialidad: medico.especialidad,
-          cedula: medico.cedula
-        }));
+                console.log("Obteniendo datos del backend...");
 
-        const pacientesFormateados = resPacientes.data.map(paciente => ({
-          _id: paciente.id,
-          username: paciente.username,
-          email: paciente.email
-        }));
-        
-        setMedicos(medicosFormateados);
-        setPacientes(pacientesFormateados);
-        
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        Alert.alert("Error", "No se pudieron cargar los datos.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
+                const resMedicos = await api.get('/medicos/GetAllMedicos');
+                const resPacientes = await api.get('/pacientes/getAllPacientes');
 
-  const onChangePicker = (event, selectedDate) => {
-    setShowPicker(false);
-    if (selectedDate) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+                const medicosFormateados = resMedicos.data.map(medico => ({
+                    _id: medico.id,
+                    username: medico.username,
+                    especialidad: medico.especialidad,
+                    cedula: medico.cedula
+                }));
 
-      if (selectedDate <= today) {
-        Alert.alert("Error", "La cita debe ser programada a partir de mañana.");
-        return;
-      }
+                const pacientesFormateados = resPacientes.data.map(paciente => ({
+                    _id: paciente.id,
+                    username: paciente.username,
+                    email: paciente.email
+                }));
 
-      setDateObject(selectedDate);
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const year = selectedDate.getFullYear();
-      setFecha(`${day}-${month}-${year}`);
-    }
-  };
+                setMedicos(medicosFormateados);
+                setPacientes(pacientesFormateados);
 
-  const handleCreateAppointment = async () => {
-    if (!currentUser) {
-      Alert.alert("Error", "Sesión no válida.");
-      return;
-    }
+            } catch (error) {
+                console.error("Error cargando datos:", error);
+                Alert.alert("Error", "No se pudieron cargar los datos.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    let finalPacienteId = "";
-    let finalMedicoId = "";
-    const role = parseInt(currentUser.role);
+        fetchData();
+    }, []);
 
-    if (role === 0 || role === 2) {
-      finalPacienteId = pacienteSeleccionado;
-      finalMedicoId = medicoSeleccionado;
-    } else if (role === 1) {
-      finalPacienteId = pacienteSeleccionado;
-      finalMedicoId = currentUser._id;
-    } else if (role === 3) {
-      finalPacienteId = currentUser._id;
-      finalMedicoId = medicoSeleccionado;
-    }
+    const onChangePicker = (event, selectedDate) => {
+        setShowPicker(false);
+        if (selectedDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-    if (!fecha || !hora || !finalPacienteId || !finalMedicoId || !motivo) {
-      Alert.alert("Error", "Por favor completa todos los campos requeridos.");
-      return;
-    }
+            if (selectedDate <= today) {
+                Alert.alert("Error", "La cita debe ser programada a partir de mañana.");
+                return;
+            }
 
-    const finalStatus = (role === 1 || role === 2) ? "confirmada" : "pendiente";
+            setDateObject(selectedDate);
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const year = selectedDate.getFullYear();
+            setFecha(`${day}-${month}-${year}`);
+        }
+    };
 
-    setIsLoading(true);
-  
-    try {
-      const [h, m] = hora.split(':');
-      const finalDate = new Date(dateObject);
-      finalDate.setHours(parseInt(h), parseInt(m), 0);
+    const handleCreateAppointment = async () => {
+        if (!currentUser) {
+            Alert.alert("Error", "Sesión no válida.");
+            return;
+        }
 
-      const appointmentData = {
-        paciente_id: finalPacienteId,
-        medico_id: finalMedicoId,
-        fecha_hora: finalDate.toISOString(),
-        status: finalStatus,
-        motivo: motivo.trim(),
-      };
+        let finalPacienteId = "";
+        let finalMedicoId = "";
+        const role = parseInt(currentUser.role);
 
-      console.log("\n OBJETO A ENVIAR SEGÚN ROL (" + role + "):");
-      console.log(JSON.stringify(appointmentData, null, 2));
+        if (role === 0 || role === 2) {
+            finalPacienteId = pacienteSeleccionado;
+            finalMedicoId = medicoSeleccionado;
+        } else if (role === 1) {
+            finalPacienteId = pacienteSeleccionado;
+            finalMedicoId = currentUser._id;
+        } else if (role === 3) {
+            finalPacienteId = currentUser._id;
+            finalMedicoId = medicoSeleccionado;
+        }
 
-      const response = await api.post('/appointments/createAppointments', appointmentData);
+        if (!fecha || !hora || !finalPacienteId || !finalMedicoId || !motivo) {
+            Alert.alert("Error", "Por favor completa todos los campos requeridos.");
+            return;
+        }
 
-      Alert.alert("Éxito", response.data.msg || "Cita agendada con éxito");
+        const finalStatus = (role === 1 || role === 2) ? "confirmada" : "pendiente";
 
-      setFecha("");
-      setHora("");
-      setMedicoSeleccionado("");
-      setPacienteSeleccionado("");
-      setMotivo("");
-      setDateObject(new Date());
+        setIsLoading(true);
 
-      return true;
+        try {
+            const [h, m] = hora.split(':');
+            const finalDate = new Date(dateObject);
+            finalDate.setHours(parseInt(h), parseInt(m), 0);
 
-    } catch (error) {
-      console.error("Error en la petición:", error.response?.data);
-      Alert.alert("Error", error.response?.data?.msg || "No se pudo agendar.");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            const appointmentData = {
+                paciente_id: finalPacienteId,
+                medico_id: finalMedicoId,
+                fecha_hora: finalDate.toISOString(),
+                status: finalStatus,
+                motivo: motivo.trim(),
+            };
 
-  return {
-    fecha,
-    hora,
-    setHora,
-    horasDisponibles,
-    medicoSeleccionado,
-    setMedicoSeleccionado,
-    medicos,
-    pacientes,
-    pacienteSeleccionado,
-    setPacienteSeleccionado,
-    motivo,
-    setMotivo,
-    showPicker,
-    setShowPicker,
-    dateObject,
-    onChangePicker,
-    handleCreateAppointment,
-    isLoading,
-    currentUser
-  };
+            console.log("\n OBJETO A ENVIAR SEGÚN ROL (" + role + "):");
+            console.log(JSON.stringify(appointmentData, null, 2));
+
+            const response = await api.post('/appointments/createAppointments', appointmentData);
+
+            Alert.alert("Éxito", response.data.msg || "Cita agendada con éxito");
+
+            setFecha("");
+            setHora("");
+            setMedicoSeleccionado("");
+            setPacienteSeleccionado("");
+            setMotivo("");
+            setDateObject(new Date());
+
+            return true;
+
+        } catch (error) {
+            console.error("Error en la petición:", error.response?.data);
+            Alert.alert("Error", error.response?.data?.msg || "No se pudo agendar.");
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return {
+        fecha,
+        hora,
+        setHora,
+        horasDisponibles,
+        medicoSeleccionado,
+        setMedicoSeleccionado,
+        medicos,
+        pacientes,
+        pacienteSeleccionado,
+        setPacienteSeleccionado,
+        motivo,
+        setMotivo,
+        showPicker,
+        setShowPicker,
+        dateObject,
+        onChangePicker,
+        handleCreateAppointment,
+        isLoading,
+        currentUser
+    };
 };
 
 export default useCreateAppointment;

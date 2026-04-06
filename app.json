@@ -7,12 +7,17 @@
     "scheme": "pugs",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./app/assets/logoApp.png",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./app/assets/logoApp.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "web": {
       "output": "static",
