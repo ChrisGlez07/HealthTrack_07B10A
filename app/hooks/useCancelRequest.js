@@ -8,7 +8,7 @@ const useCancelRequest = () => {
   const fetchCancelAppointments = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/appointments/getPendingAppointments');
+      const response = await api.get('/appointments/getPendingCancellations');
       const data = response.data.pendientes || response.data;
       setAppointments(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -27,13 +27,13 @@ const useCancelRequest = () => {
     setIsLoading(true);
     try {
       await api.patch(`/appointments/updateAppointmentStatus/${id}`, {
-        nuevoEstado: 'confirmada'
+        nuevoEstado: 'cancelada'
       });
-      alert("Cita confirmada");
-      await fetchPendingAppointments();
+      alert("Cita cancelada");
+      await fetchCancelAppointments();
     } catch (error) {
-      console.error("Fallo al confirmar:", error.response?.data || error.message);
-      alert("Error en el servidor al confirmar");
+      console.error("Fallo al cancelar:", error.response?.data || error.message);
+      alert("Error en el servidor al cancelar la cita");
     } finally {
       setIsLoading(false);
     }
