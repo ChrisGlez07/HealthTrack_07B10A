@@ -9,7 +9,7 @@ const useCancelRequest = () => {
     setIsLoading(true);
     try {
       const response = await api.get('/appointments/getPendingCancellations');
-      const data = response.data.pendientes || response.data;
+      const data = response.data.pendiente_aprobacion || response.data;
       setAppointments(Array.isArray(data) ? data : []);
     } catch (error) {
       setAppointments([]); 

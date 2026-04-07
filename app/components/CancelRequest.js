@@ -28,7 +28,7 @@ const CancelRequest = () => {
         />
       </View>
 
-      <Text style={styles.titleText}>CITAS PENDIENTES A CONFIRMAR</Text>
+      <Text style={styles.titleText}>CITAS PENDIENTES DE CANCELAR</Text>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {isLoading ? (
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 40,
     padding: 10,
   },
    logo: {

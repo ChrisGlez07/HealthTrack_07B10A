@@ -70,8 +70,7 @@ const useCreateAppointment = () => {
 
             if (selectedDate <= today) {
                 Alert.alert("Error", "La cita debe ser programada a partir de mañana.");
-                return;
-            }
+                return;            }
 
             setDateObject(selectedDate);
             const day = String(selectedDate.getDate()).padStart(2, '0');

@@ -114,7 +114,7 @@ const useCurrentAppointment = () => {
     switch (filterType) {
       case "activas":
         filtered = appointmentsList.filter(
-          app => app.status === "pendiente" || app.status === "confirmada"
+          app => app.status === "pendiente" || app.status === "confirmada" 
         );
         break;
       case "pendientes":
