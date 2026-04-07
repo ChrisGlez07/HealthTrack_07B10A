@@ -1,3 +1,4 @@
+//Final App
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import useMenu from "../hooks/useMenu";
 

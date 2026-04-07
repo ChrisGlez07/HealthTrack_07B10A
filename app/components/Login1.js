@@ -1,3 +1,4 @@
+//Final App
 import { Ionicons } from '@expo/vector-icons'; // Importamos los iconos
 import React from "react";
 import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";

@@ -1,3 +1,4 @@
+//Final App
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import usePendingAppointments from '../hooks/usePendingAppointments';
