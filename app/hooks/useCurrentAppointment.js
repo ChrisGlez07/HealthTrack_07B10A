@@ -62,7 +62,6 @@ const useCurrentAppointment = () => {
         pendiente: allAppointments.filter(a => a.status === "pendiente").length,
         confirmada: allAppointments.filter(a => a.status === "confirmada").length,
         cancelada: allAppointments.filter(a => a.status === "cancelada").length,
-        rechazada: allAppointments.filter(a => a.status === "rechazada").length
       };
       console.log(" Estadísticas:", stats);
 
