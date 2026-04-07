@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
+import StorageService from "../helpers/StorageService";
 import api from "../models/users";
 
 const useCurrentAppointment = () => {
@@ -8,6 +9,8 @@ const useCurrentAppointment = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState("activas");
+
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchAllAppointments = async () => {
     setIsLoading(true);
@@ -242,6 +245,11 @@ const useCurrentAppointment = () => {
   };
 
   useEffect(() => {
+    const loadUserData = async () => {
+      const userData = await StorageService.getItem("userData");
+      setCurrentUser(userData);
+    };
+    loadUserData();
     fetchAllAppointments();
   }, []);
 
@@ -251,6 +259,7 @@ const useCurrentAppointment = () => {
     isLoading,
     error,
     activeFilter,
+    currentUser,
     changeFilter,
     updateAppointmentStatus,
     handleCancelacion,

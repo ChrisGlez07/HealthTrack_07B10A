@@ -7,7 +7,7 @@
     "scheme": "pugs",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "icon": "./app/assets/logoApp.png",
+    "icon": "./app/assets/logoApp1.png",
     "ios": {
       "supportsTablet": true
     },
@@ -15,7 +15,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
-        "foregroundImage": "./app/assets/logoApp.png",
+        "foregroundImage": "./app/assets/logoApp1.png",
         "backgroundColor": "#FFFFFF"
       }
     },

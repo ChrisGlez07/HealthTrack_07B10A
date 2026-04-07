@@ -6,7 +6,16 @@ import useCurrentAppointment from '../hooks/useCurrentAppointment';
 
 const CurrentAppointment = () => {
   const router = useRouter();
-  const { appointments, isLoading, error, refresh, handleCancelacion } = useCurrentAppointment();
+  const { 
+    appointments, 
+    isLoading, 
+    error, 
+    refresh, 
+    handleCancelacion, 
+    currentUser
+  } = useCurrentAppointment();
+
+  const isPaciente = currentUser?.role === "3";
 
   const [activeFilter, setActiveFilter] = useState('todas');
   const [modalVisible, setModalVisible] = useState(false);
@@ -186,7 +195,7 @@ const CurrentAppointment = () => {
               </View>
 
 
-              {canCancel(item?.status) && (
+              {canCancel(item?.status) && isPaciente && (
                 <TouchableOpacity
                   style={styles.cancelButton}
                   onPress={() => handleCancelPress(item)}
