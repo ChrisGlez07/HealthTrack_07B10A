@@ -27,7 +27,7 @@ const CurrentAppointment = () => {
   const displayedAppointments = appointments.filter(item => {
     if (activeFilter === 'todas') return true;
     if (activeFilter === 'pendientes') return item.status === 'pendiente' || item.status === 'pendiente_aprobacion';
-    if (activeFilter === 'confirmadas') return item.status === 'confirmada';
+    if (activeFilter === 'confirmadas') return item.status === 'confirmada' || item.status === 'completada';
     if (activeFilter === 'canceladas') return item.status === 'cancelada';
     return true;
   });

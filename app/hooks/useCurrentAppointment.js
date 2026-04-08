@@ -43,10 +43,20 @@ const useCurrentAppointment = () => {
           console.log(` Agregadas ${response.data.confirmadas.length} citas confirmadas`);
         }
 
+        // Con esto proceso la respuesta .completadas
+        if (Array.isArray(response.data.completadas)) {
+          allAppointments = [...allAppointments, ...response.data.completadas];
+          console.log(` Agregadas ${response.data.completadas.length} citas completadas`);
+        }
         // Con esto proceso la respuesta .canceladas
         if (Array.isArray(response.data.canceladas)) {
           allAppointments = [...allAppointments, ...response.data.canceladas];
           console.log(` Agregadas ${response.data.canceladas.length} citas canceladas`);
+        }
+        // Con esto proceso la respuesta .pendiente_aprobacion
+        if (Array.isArray(response.data.pendiente_aprobacion)) {
+          allAppointments = [...allAppointments, ...response.data.pendiente_aprobacion];
+          console.log(` Agregadas ${response.data.pendiente_aprobacion.length} citas en espera de aprobación`);
         }
 
       } else if (Array.isArray(response.data)) {
@@ -67,6 +77,8 @@ const useCurrentAppointment = () => {
         pendiente: allAppointments.filter(a => a.status === "pendiente").length,
         confirmada: allAppointments.filter(a => a.status === "confirmada").length,
         cancelada: allAppointments.filter(a => a.status === "cancelada").length,
+        completada: allAppointments.filter(a => a.status === "completada").length,
+        pendiente_aprobacion: allAppointments.filter(a => a.status === "pendiente_aprobacion").length,
       };
       console.log(" Estadísticas:", stats);
 
@@ -123,12 +135,12 @@ const useCurrentAppointment = () => {
         break;
       case "pendientes":
         filtered = appointmentsList.filter(
-          app => app.status === "pendiente"
+          app => app.status === "pendiente" || app.status === "pendiente_aprobacion"
         );
         break;
       case "confirmadas":
         filtered = appointmentsList.filter(
-          app => app.status === "confirmada"
+          app => app.status === "confirmada" || app.status === "completada" 
         );
         break;
       case "canceladas":
